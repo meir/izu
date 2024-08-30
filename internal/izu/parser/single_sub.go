@@ -3,8 +3,9 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"github.com/meir/izu/pkg/izu"
 	"strings"
+
+	"github.com/meir/izu/pkg/izu"
 )
 
 type SingleSubPath struct {
@@ -16,7 +17,7 @@ func NewSingleSubPath() *SingleSubPath {
 }
 
 func (b *SingleSubPath) Info() (izu.State, []izu.Part) {
-	return izu.StateSubSingle, []izu.Part{}
+	return izu.StateSinglePart, []izu.Part{}
 }
 
 func (b *SingleSubPath) Parse(s []byte) (int, error) {
