@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/meir/izu/pkg/izu"
 )
-import "github.com/meir/izu/pkg/izu"
 
 type MultiPath struct {
 	parts []izu.Part
@@ -16,7 +17,7 @@ func NewMultiPath() *MultiPath {
 }
 
 func (b *MultiPath) Info() (izu.State, []izu.Part) {
-	return izu.StateMulti, b.parts
+	return izu.StateMultiple, b.parts
 }
 
 func (b *MultiPath) Parse(s []byte) (int, error) {
