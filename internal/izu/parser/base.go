@@ -2,33 +2,39 @@ package parser
 
 import (
 	"strings"
-)
-import "github.com/meir/izu/pkg/izu"
 
-type BasePath struct {
+	"github.com/meir/izu/pkg/izu"
+)
+
+// Base will parse the entire shortcut part such as
+// Super + { _, Shift +} XF68Media{Play,Pause}
+type Base struct {
 	parts []izu.Part
 }
 
-func NewBasePath() *BasePath {
-	return &BasePath{}
+// NewBase creates a new empty base parser
+func NewBase() *Base {
+	return &Base{}
 }
 
-func (b *BasePath) Info() (izu.State, []izu.Part) {
-	return izu.StateBase, b.parts
+// Info returns StateBase and the parts that are parsed by it
+func (base *Base) Info() (izu.State, []izu.Part) {
+	return izu.StateBase, base.parts
 }
 
-func (b *BasePath) Parse(s []byte) (int, error) {
-	for i := 0; i < len(s); i++ {
-		char := s[i]
+// Parse will parse the data into the base
+func (base *Base) Parse(data []byte) (int, error) {
+	for i := 0; i < len(data); i++ {
+		char := data[i]
 		switch char {
 		case '{':
-			np := NewMultiPath()
-			rs, err := np.Parse(s[i+1:])
+			multiple := NewMultiple()
+			read, err := multiple.Parse(data[i+1:])
 			if err != nil {
 				return 0, err
 			}
-			b.parts = append(b.parts, np)
-			i += rs
+			base.parts = append(base.parts, multiple)
+			i += read
 		case '}':
 			return i - 1, nil
 		case ',':
@@ -36,24 +42,25 @@ func (b *BasePath) Parse(s []byte) (int, error) {
 		case ' ', '+':
 			continue
 		default:
-			sp := NewSinglePath()
-			rs, err := sp.Parse(s[i:])
+			single := NewSingle()
+			read, err := single.Parse(data[i:])
 			if err != nil {
 				return 0, err
 			}
-			if !sp.isEmpty() {
-				b.parts = append(b.parts, sp)
-				i += rs
+			if !(single.parts == nil || len(single.parts) == 0) {
+				base.parts = append(base.parts, single)
+				i += read
 			}
 		}
 	}
-	return len(s), nil
+	return len(data), nil
 }
 
-func (b *BasePath) String() string {
-	out := make([]string, len(b.parts))
-	for i, p := range b.parts {
-		out[i] = p.String()
+// String will return the string representation of the base part that has been parsed
+func (base *Base) String() string {
+	out := make([]string, len(base.parts))
+	for i, part := range base.parts {
+		out[i] = part.String()
 	}
 	return strings.Join(out, " + ")
 }

@@ -22,7 +22,7 @@ func Test_get_parts(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		path := NewBasePath()
+		path := NewBase()
 		_, err := path.Parse([]byte(tc.in))
 
 		if tc.err && err == nil {

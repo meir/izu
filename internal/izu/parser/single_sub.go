@@ -8,41 +8,47 @@ import (
 	"github.com/meir/izu/pkg/izu"
 )
 
-type SingleSubPath struct {
+// SingleSub will parse a branching part of a single part such as
+// XF68Media{Play,Pause}
+type SingleSub struct {
 	parts []string
 }
 
-func NewSingleSubPath() *SingleSubPath {
-	return &SingleSubPath{}
+// NewSingleSub creates a new empty single sub part
+func NewSingleSub() *SingleSub {
+	return &SingleSub{}
 }
 
-func (b *SingleSubPath) Info() (izu.State, []izu.Part) {
+// Info returns StateSinglePart and the parts that are parsed by it
+func (sub *SingleSub) Info() (izu.State, []izu.Part) {
 	return izu.StateSinglePart, []izu.Part{}
 }
 
-func (b *SingleSubPath) Parse(s []byte) (int, error) {
-	b.parts = append(b.parts, "")
-	for i := 0; i < len(s); i++ {
-		char := s[i]
+// Parse will parse the data into the single sub part
+func (sub *SingleSub) Parse(data []byte) (int, error) {
+	sub.parts = append(sub.parts, "")
+	for i := 0; i < len(data); i++ {
+		char := data[i]
 		switch char {
 		case '{':
 			return i, errors.New("unexpected '{'")
 		case '}':
-			if b.parts[len(b.parts)-1] == "" {
-				b.parts = b.parts[:len(b.parts)-1]
+			if sub.parts[len(sub.parts)-1] == "" {
+				sub.parts = sub.parts[:len(sub.parts)-1]
 			}
 			return i + 1, nil
 		case ',':
-			b.parts = append(b.parts, "")
+			sub.parts = append(sub.parts, "")
 		case ' ', '+':
 			return i, errors.New("unexpected '" + string(char) + "'")
 		default:
-			b.parts[len(b.parts)-1] += string(char)
+			sub.parts[len(sub.parts)-1] += string(char)
 		}
 	}
-	return len(s), nil
+	return len(data), nil
 }
 
-func (b *SingleSubPath) String() string {
-	return fmt.Sprintf("{%v}", strings.Join(b.parts, ","))
+// String will return the string representation of the single sub part that has been parsed
+func (sub *SingleSub) String() string {
+	return fmt.Sprintf("{%v}", strings.Join(sub.parts, ","))
 }

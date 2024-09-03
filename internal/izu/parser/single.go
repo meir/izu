@@ -1,61 +1,66 @@
 package parser
 
 import (
-	"github.com/meir/izu/pkg/izu"
 	"strings"
+
+	"github.com/meir/izu/pkg/izu"
 )
 
-type SinglePath struct {
+// Single will parse a single part such as
+// A
+// XF68AudioPlay
+// XF86Audio{Play,Pause}
+type Single struct {
 	parts []izu.Part
 }
 
-func NewSinglePath() *SinglePath {
-	return &SinglePath{}
+// NewSingle creates a new empty single part
+func NewSingle() *Single {
+	return &Single{}
 }
 
-func (b *SinglePath) Info() (izu.State, []izu.Part) {
-	return izu.StateSingle, b.parts
+// Info returns StateSingle and the parts parsed by it
+func (single *Single) Info() (izu.State, []izu.Part) {
+	return izu.StateSingle, single.parts
 }
 
-func (b *SinglePath) Parse(s []byte) (int, error) {
-	for i := 0; i < len(s); i++ {
-		char := s[i]
+// Parse will parse the data into the single part
+func (single *Single) Parse(data []byte) (int, error) {
+	for i := 0; i < len(data); i++ {
+		char := data[i]
 		switch char {
 		case '{':
-			np := NewSingleSubPath()
-			rs, err := np.Parse(s[i+1:])
+			single_sub := NewSingleSub()
+			read, err := single_sub.Parse(data[i+1:])
 			if err != nil {
 				return 0, err
 			}
-			b.parts = append(b.parts, np)
-			i += rs
+			single.parts = append(single.parts, single_sub)
+			i += read
 		case ',', '}':
 			return i - 1, nil
 		case ' ', '+':
 			return i, nil
 		default:
-			sp := NewStringPath()
-			rs, err := sp.Parse(s[i:])
+			str := NewString()
+			read, err := str.Parse(data[i:])
 			if err != nil {
 				return 0, err
 			}
-			if sp.key != "" {
-				b.parts = append(b.parts, sp)
-				i += rs
+			if str.key != "" {
+				single.parts = append(single.parts, str)
+				i += read
 			}
 		}
 	}
-	return len(s), nil
+	return len(data), nil
 }
 
-func (b *SinglePath) isEmpty() bool {
-	return b.parts == nil || len(b.parts) == 0
-}
-
-func (b *SinglePath) String() string {
-	out := make([]string, len(b.parts))
-	for i, p := range b.parts {
-		out[i] = p.String()
+// String will return the string representation of the single part that has been parsed
+func (single *Single) String() string {
+	out := make([]string, len(single.parts))
+	for i, part := range single.parts {
+		out[i] = part.String()
 	}
 	return strings.Join(out, "")
 }
