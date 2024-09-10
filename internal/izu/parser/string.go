@@ -7,17 +7,24 @@ import "github.com/meir/izu/pkg/izu"
 // A
 // Super
 type String struct {
+	formatter izu.Formatter
+
 	key string
 }
 
 // NewString creates a new empty string part
-func NewString() *String {
-	return &String{}
+func NewString(formatter izu.Formatter) *String {
+	return &String{formatter: formatter}
 }
 
 // Info returns StateString and the parts that are parsed by it
 func (str *String) Info() (izu.State, []izu.Part) {
 	return izu.StateString, []izu.Part{}
+}
+
+// Key will return the key that has been parsed
+func (str *String) Key() string {
+	return str.key
 }
 
 // Parse will parse the data into the string part

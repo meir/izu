@@ -1,25 +1,25 @@
 local formatter = {}
 
-function formatter.keybind (parts)
+function formatter.keybind(parts)
   local bind = parts[1]
   local command = parts[2]
-  return bind .. "\n  " .. command
+  return "bindsym " .. bind .. " exec " .. command
 end
 
 function formatter.command(parts)
-  return table.concat(parts, " ")
+  return table.concat(parts, "")
 end
 
 -- Super + { a, b } + XF68Media{Play,Pause}
 -- ________________________________________
 function formatter.base (parts)
-  return table.concat(parts, " + ")
+  return table.concat(parts, "+")
 end
 
 -- Super + { a, b } + XF68Media{Play,Pause}
 --         ^______^
 function formatter.multiple (parts)
-  return "{ " .. table.concat(parts, ", ") .. " }"
+  return parts
 end
 
 -- Super + { a, b } + XF68Media{Play,Pause}
@@ -31,13 +31,17 @@ end
 -- Super + { a, b } + XF68Media{Play,Pause}
 --                             ^__________^
 function formatter.single_part (parts)
-  return "{" .. table.concat(parts, ",") .. "}"
+  return parts
 end
 
 -- Super + { a, b } + XF68Media{Play,Pause}
 -- ^^^^^     ^  ^     ^^^^^^^^^ ^^^^ ^^^^^
 function formatter.string (part)
-  return table.concat(part, "")
+  local text = part[1]
+  if text == "Super" then
+    return {"Mod4"}
+  end
+  return part
 end
 
 return formatter

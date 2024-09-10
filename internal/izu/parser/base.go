@@ -9,12 +9,14 @@ import (
 // Base will parse the entire shortcut part such as
 // Super + { _, Shift +} XF68Media{Play,Pause}
 type Base struct {
+	formatter izu.Formatter
+
 	parts []izu.Part
 }
 
 // NewBase creates a new empty base parser
-func NewBase() *Base {
-	return &Base{}
+func NewBase(formatter izu.Formatter) *Base {
+	return &Base{formatter: formatter}
 }
 
 // Info returns StateBase and the parts that are parsed by it
@@ -28,7 +30,7 @@ func (base *Base) Parse(data []byte) (int, error) {
 		char := data[i]
 		switch char {
 		case '{':
-			multiple := NewMultiple()
+			multiple := NewMultiple(base.formatter)
 			read, err := multiple.Parse(data[i+1:])
 			if err != nil {
 				return 0, err
@@ -41,8 +43,10 @@ func (base *Base) Parse(data []byte) (int, error) {
 			return i, nil
 		case ' ', '+':
 			continue
+		case '\n':
+			return i, nil
 		default:
-			single := NewSingle()
+			single := NewSingle(base.formatter)
 			read, err := single.Parse(data[i:])
 			if err != nil {
 				return 0, err

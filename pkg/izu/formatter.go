@@ -5,7 +5,9 @@ import "embed"
 type State uint8
 
 const (
-	StateBase State = iota
+	StateKeybind State = iota
+	StateCommand
+	StateBase
 	StateMultiple
 	StateSingle
 	StateSinglePart
@@ -18,9 +20,7 @@ type Part interface {
 	String() string
 }
 
-type Formatter interface {
-	Format(State, []Part) []string
-}
+type Formatter interface{}
 
 //go:embed formatters/*
 var Formatters embed.FS

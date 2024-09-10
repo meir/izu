@@ -11,12 +11,14 @@ import (
 // XF68AudioPlay
 // XF86Audio{Play,Pause}
 type Single struct {
+	formatter izu.Formatter
+
 	parts []izu.Part
 }
 
 // NewSingle creates a new empty single part
-func NewSingle() *Single {
-	return &Single{}
+func NewSingle(formatter izu.Formatter) *Single {
+	return &Single{formatter: formatter}
 }
 
 // Info returns StateSingle and the parts parsed by it
@@ -30,24 +32,24 @@ func (single *Single) Parse(data []byte) (int, error) {
 		char := data[i]
 		switch char {
 		case '{':
-			single_sub := NewSingleSub()
+			single_sub := NewSingleSub(single.formatter)
 			read, err := single_sub.Parse(data[i+1:])
 			if err != nil {
 				return 0, err
 			}
 			single.parts = append(single.parts, single_sub)
 			i += read
-		case ',', '}':
+		case ',', '}', '\n':
 			return i - 1, nil
 		case ' ', '+':
 			return i, nil
 		default:
-			str := NewString()
+			str := NewString(single.formatter)
 			read, err := str.Parse(data[i:])
 			if err != nil {
 				return 0, err
 			}
-			if str.key != "" {
+			if strings.TrimSpace(str.key) != "" {
 				single.parts = append(single.parts, str)
 				i += read
 			}
