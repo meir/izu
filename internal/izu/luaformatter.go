@@ -93,13 +93,7 @@ func (luaf *LuaFormatter) getFormatter() (data []byte, err error) {
 }
 
 // call is used to call a method in the lua formatter
-func (luaf *LuaFormatter) call(method izu.State, values ...string) ([]string, error) {
-	// prepare input table
-	table := luaf.state.NewTable()
-	for i, str := range values {
-		table.RawSetInt(i+1, lua.LString(str))
-	}
-
+func (luaf *LuaFormatter) call(method izu.State, value lua.LValue) ([]string, error) {
 	var luamethod lua.LValue
 	var ok bool
 	if luamethod, ok = luaf.methods[method.String()]; !ok {
@@ -111,7 +105,7 @@ func (luaf *LuaFormatter) call(method izu.State, values ...string) ([]string, er
 		Fn:      luamethod,
 		NRet:    1,
 		Protect: true,
-	}, table)
+	}, value)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call lua formatting method %s: %w", method.String(), err)
 	}
@@ -192,7 +186,7 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part) ([]string, error) {
 		// strings should be handled differently, they should directly be called as
 		//this is the lowest AST type there is, only thing it can do is transform text
 		if str, ok := part.(*parser.String); ok {
-			return luaf.call(state, str.Key())
+			return luaf.call(state, lua.LString(str.Key()))
 		}
 		return nil, fmt.Errorf("formatter part is returning the wrong state")
 	}
@@ -200,7 +194,14 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part) ([]string, error) {
 	// call the lua method with the inputs
 	outputs := []string{}
 	for _, input := range inputs {
-		strs, err := luaf.call(state, input...)
+		// prepare input table
+		table := luaf.state.NewTable()
+		for i, str := range input {
+			table.RawSetInt(i+1, lua.LString(str))
+		}
+
+		// call the lua method
+		strs, err := luaf.call(state, table)
 		if err != nil {
 			return nil, err
 		}

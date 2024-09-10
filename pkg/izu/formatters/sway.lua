@@ -37,9 +37,8 @@ end
 -- Super + { a, b } + XF68Media{Play,Pause}
 -- ^^^^^     ^  ^     ^^^^^^^^^ ^^^^ ^^^^^
 function formatter.string (part)
-  local text = part[1]
-  if text == "Super" then
-    return {"Mod4"}
+  if part == "Super" then
+    return "Mod4"
   end
   return part
 end

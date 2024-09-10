@@ -37,8 +37,8 @@ end
 -- Super + { a, b } + XF68Media{Play,Pause}
 -- ^^^^^     ^  ^     ^^^^^^^^^ ^^^^ ^^^^^
 function formatter.string (part)
-  if part[1] == "Super" then
-    return {"SUPER"}
+  if part == "Super" then
+    return uppercase(part)
   end
   return part
 end
