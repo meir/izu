@@ -1,0 +1,11 @@
+
+Super + XF68Media{Play,Pause}
+  playerctl --{play,pause}
+
+# this is a test
+Super + W
+  walld
+
+Super + Return
+  # should ignore this
+  echo "and run this"

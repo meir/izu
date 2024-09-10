@@ -9,14 +9,12 @@ import (
 // Base will parse the entire shortcut part such as
 // Super + { _, Shift +} XF68Media{Play,Pause}
 type Command struct {
-	formatter izu.Formatter
-
 	parts []izu.Part
 }
 
 // NewBase creates a new empty base parser
-func NewCommand(formatter izu.Formatter) *Command {
-	return &Command{formatter: formatter}
+func NewCommand() *Command {
+	return &Command{}
 }
 
 // Info returns StateBase and the parts that are parsed by it
@@ -26,13 +24,23 @@ func (cmd *Command) Info() (izu.State, []izu.Part) {
 
 // Parse will parse the data into the base
 func (cmd *Command) Parse(data []byte) (int, error) {
-	str := NewString(cmd.formatter)
+	buffer := ""
+	add_buffer := func() {
+		str := NewString()
+		str.key = buffer
+		cmd.parts = append(cmd.parts, str)
+		buffer = ""
+	}
+
+	defer add_buffer()
+
 	for i := 0; i < len(data); i++ {
 		char := data[i]
 		switch char {
 		case '{':
-			cmd.parts = append(cmd.parts, str)
-			sub := NewSingleSub(cmd.formatter)
+			add_buffer()
+
+			sub := NewSingleSub()
 			read, err := sub.Parse(data[i+1:])
 			if err != nil {
 				return 0, err
@@ -40,11 +48,11 @@ func (cmd *Command) Parse(data []byte) (int, error) {
 			cmd.parts = append(cmd.parts, sub)
 			i += read
 		case '}':
-			str = NewString(cmd.formatter)
+			buffer = ""
 		case '\n':
 			return i, nil
 		default:
-			str.key += string(char)
+			buffer += string(char)
 		}
 	}
 	return len(data), nil
@@ -56,5 +64,5 @@ func (cmd *Command) String() string {
 	for i, part := range cmd.parts {
 		out[i] = part.String()
 	}
-	return strings.Join(out, " + ")
+	return strings.TrimSpace(strings.Join(out, ""))
 }

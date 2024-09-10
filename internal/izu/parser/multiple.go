@@ -12,14 +12,12 @@ import (
 // { x, y }
 // where theres a choice between 1 or more keys
 type Multiple struct {
-	formatter izu.Formatter
-
 	parts []izu.Part
 }
 
 // NewMultiple returns a new empty multiple part
-func NewMultiple(formatter izu.Formatter) *Multiple {
-	return &Multiple{formatter: formatter}
+func NewMultiple() *Multiple {
+	return &Multiple{}
 }
 
 // Info returns StateMultiple and the parts that are parsed by it
@@ -37,7 +35,7 @@ func (multiple *Multiple) Parse(data []byte) (int, error) {
 		case '}':
 			return i + 1, nil
 		default:
-			base := NewBase(multiple.formatter)
+			base := NewBase()
 			read, err := base.Parse(data[i:])
 			if err != nil {
 				return 0, err

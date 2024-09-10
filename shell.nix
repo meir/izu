@@ -1,17 +1,16 @@
-{ pkgs ? (
+{
+  pkgs ? (
     let
       inherit (builtins) fetchTree fromJSON readFile;
       inherit ((fromJSON (readFile ./flake.lock)).nodes) nixpkgs gomod2nix;
     in
     import (fetchTree nixpkgs.locked) {
-      overlays = [
-        (import "${fetchTree gomod2nix.locked}/overlay.nix")
-      ];
+      overlays = [ (import "${fetchTree gomod2nix.locked}/overlay.nix") ];
     }
-  )
-, mkGoEnv ? pkgs.mkGoEnv
-, gomod2nix ? pkgs.gomod2nix
-, pre-commit-hooks
+  ),
+  mkGoEnv ? pkgs.mkGoEnv,
+  gomod2nix ? pkgs.gomod2nix,
+  pre-commit-hooks,
 }:
 
 let
@@ -20,15 +19,16 @@ let
     src = ./.;
     hooks = {
       gofmt.enable = true;
-      golangci-lint = {
-        enable = true;
-        name = "golangci-lint";
-        description = "Lint my golang code";
-        files = "\.go$";
-        entry = "${pkgs.golangci-lint}/bin/golangci-lint run --new-from-rev HEAD --fix";
-        require_serial = true;
-        pass_filenames = false;
-      };
+      # broken
+      # golangci-lint = {
+      #   enable = true;
+      #   name = "golangci-lint";
+      #   description = "Lint my golang code";
+      #   files = "\.go$";
+      #   entry = "${pkgs.golangci-lint}/bin/golangci-lint run --new-from-rev HEAD --fix";
+      #   require_serial = true;
+      #   pass_filenames = false;
+      # };
       goimports = {
         enable = true;
         name = "goimports";

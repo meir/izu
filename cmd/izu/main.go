@@ -49,14 +49,20 @@ func main() {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			if c.String("string") != "" {
-				strs, err := formatter.ParseString(c.String("string"))
+			if c.String("config") != "" {
+				content, err := formatter.ParseFile(c.String("config"))
 				if err != nil {
 					return cli.Exit(err.Error(), 1)
 				}
-				for _, str := range strs {
-					fmt.Println(str)
+				fmt.Println(string(content))
+			}
+
+			if c.String("string") != "" {
+				content, err := formatter.ParseString([]byte(c.String("string")))
+				if err != nil {
+					return cli.Exit(err.Error(), 1)
 				}
+				fmt.Println(string(content))
 			}
 
 			return nil

@@ -11,21 +11,19 @@ import (
 // SingleSub will parse a branching part of a single part such as
 // XF68Media{Play,Pause}
 type SingleSub struct {
-	formatter izu.Formatter
-
 	parts []string
 }
 
 // NewSingleSub creates a new empty single sub part
-func NewSingleSub(formatter izu.Formatter) *SingleSub {
-	return &SingleSub{formatter: formatter}
+func NewSingleSub() *SingleSub {
+	return &SingleSub{}
 }
 
 // Info returns StateSinglePart and the parts that are parsed by it
 func (sub *SingleSub) Info() (izu.State, []izu.Part) {
 	parts := make([]izu.Part, len(sub.parts))
 	for i, part := range sub.parts {
-		str := NewString(sub.formatter)
+		str := NewString()
 		str.key = part
 		parts[i] = str
 	}

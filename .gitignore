@@ -1,2 +1,3 @@
 /gomod2nix-template
 .pre-commit-config.yaml
+result/
