@@ -24,7 +24,7 @@ func (sub *SingleSub) Info() (izu.State, []izu.Part) {
 	parts := make([]izu.Part, len(sub.parts))
 	for i, part := range sub.parts {
 		str := NewString()
-		str.key = part
+		str.Key = part
 		parts[i] = str
 	}
 	return izu.StateSinglePart, parts

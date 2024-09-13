@@ -17,9 +17,9 @@ echo "like this"
 
 
 # they can also be seperated using a semicolon like so
-Super_L + Alt_L + S ; echo "this is also valid"
+super_l + alt_l + S ; echo "this is also valid"
 
 # you honestly dont even need plus signs actually, they just get ignored, but its a nice visual
-Super_L {Shift_L,Alt_L} S
+super_l {shift_l,alt_l} s
   echo "like this"
   

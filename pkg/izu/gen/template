@@ -5,6 +5,6 @@
 package izu
 
 func init() {
-  keys = map[string]bool{%s}
+  keys = map[string]string{%s}
 }
 

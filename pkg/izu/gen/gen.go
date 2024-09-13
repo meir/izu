@@ -30,18 +30,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	keys := []string{}
+	keys := map[string]string{}
 	for _, match := range regex.FindAllStringSubmatch(string(content), -1) {
-		keys = append(keys, fmt.Sprintf("\"%s\"", match[1]))
-	}
-	slices.Sort(keys)
-	keys = slices.Compact(keys)
-
-	for i, key := range keys {
-		keys[i] = key + ": true"
+		keys[strings.ToLower(match[1])] = fmt.Sprintf("\"%s\": \"%s\"", strings.ToLower(match[1]), match[1])
 	}
 
-	template = fmt.Sprintf(template, source, strings.Join(keys, ", "))
+	key_array := []string{}
+	for _, key := range keys {
+		key_array = append(key_array, key)
+	}
+	slices.Sort(key_array)
+
+	template = fmt.Sprintf(template, source, strings.Join(key_array, ", "))
 
 	err = os.WriteFile("generated_keys.go", []byte(template), 0644)
 	if err != nil {

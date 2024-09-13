@@ -11,7 +11,7 @@ import (
 // A
 // Super
 type String struct {
-	key string
+	Key string
 }
 
 // NewString creates a new empty string part
@@ -22,11 +22,6 @@ func NewString() *String {
 // Info returns StateString and the parts that are parsed by it
 func (str *String) Info() (izu.State, []izu.Part) {
 	return izu.StateString, []izu.Part{}
-}
-
-// Key will return the key that has been parsed
-func (str *String) Key() string {
-	return strings.TrimSpace(str.key)
 }
 
 // Parse will parse the data into the string part
@@ -41,7 +36,7 @@ func (str *String) Parse(data []byte) (int, error) {
 		case char >= 'A' && char <= 'Z':
 			fallthrough
 		case char >= '0' && char <= '9':
-			str.key += string(char)
+			str.Key += string(char)
 		default:
 			return i - 1, nil
 		}
@@ -51,5 +46,5 @@ func (str *String) Parse(data []byte) (int, error) {
 
 // String will return the string representation of the string part that has been parsed
 func (str *String) String() string {
-	return strings.TrimSpace(str.key)
+	return strings.TrimSpace(str.Key)
 }

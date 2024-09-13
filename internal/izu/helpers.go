@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/iancoleman/strcase"
+	"github.com/meir/izu/pkg/izu"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -48,4 +49,21 @@ func hasKey(state *lua.LState) int {
 	})
 	state.Push(lua.LBool(result))
 	return 1
+}
+
+// addKey will add a key to the validation map
+func addKey(state *lua.LState) int {
+	value := state.Get(1)
+
+	switch value.Type() {
+	case lua.LTString:
+		key := value.String()
+		izu.AddValidationKey(key)
+	case lua.LTTable:
+		value.(*lua.LTable).ForEach(func(k, v lua.LValue) {
+			key := v.String()
+			izu.AddValidationKey(key)
+		})
+	}
+	return 0
 }

@@ -47,7 +47,7 @@ func (single *Single) Parse(data []byte) (int, error) {
 			if err != nil {
 				return 0, err
 			}
-			if strings.TrimSpace(str.key) != "" {
+			if strings.TrimSpace(str.Key) != "" {
 				single.parts = append(single.parts, str)
 				i += read
 			}

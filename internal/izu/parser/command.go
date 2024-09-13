@@ -27,7 +27,7 @@ func (cmd *Command) Parse(data []byte) (int, error) {
 	buffer := ""
 	add_buffer := func() {
 		str := NewString()
-		str.key = buffer
+		str.Key = buffer
 		cmd.parts = append(cmd.parts, str)
 		buffer = ""
 	}

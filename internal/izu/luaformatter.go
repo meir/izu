@@ -186,7 +186,7 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part, section int8) ([]strin
 		// strings should be handled differently, they should directly be called as
 		//this is the lowest AST type there is, only thing it can do is transform text
 		if str, ok := part.(*parser.String); ok {
-			return luaf.call(state, lua.LString(str.Key()), section)
+			return luaf.call(state, lua.LString(str.Key), section)
 		}
 		return nil, fmt.Errorf("formatter part is returning the wrong state")
 	}
@@ -230,42 +230,54 @@ func getSingles(binding izu.Part) []izu.Part {
 
 // validateKeys is used to validate the keys in the binding
 func validateKeys(binding izu.Part) error {
-	// get all the single parts
-	singles := getSingles(binding)
+	// go through all single parts
+	for _, part := range getSingles(binding) {
+		bindings := [][]izu.Part{{}}
+		_, parts := part.Info()
 
-	// loop through all the singles and validate the keys
-	for _, single := range singles {
-		keys := []string{""}
-		_, parts := single.Info()
-		for _, part := range parts {
-			switch part.(type) {
-			case *parser.String:
-				// if its a string part, just add it to all the keys
-				for i := range keys {
-					keys[i] += part.String()
+		// add the parts accordingly to the array as either string or get the string parts from the singlepart
+		for _, sub_part := range parts {
+			state, subparts := sub_part.Info()
+
+			switch state {
+			case izu.StateString:
+				// add the string part to all the bindings
+				for bind := range bindings {
+					bindings[bind] = append(bindings[bind], sub_part)
 				}
-
-			case *parser.SingleSub:
-				// if its a single sub part, multiply the keys by the parts and add each seperate part
-				newKeys := []string{}
-				for _, key := range keys {
-					_, subParts := part.Info()
-					for _, subPart := range subParts {
-						newKeys = append(newKeys, key+subPart.String())
+			case izu.StateSinglePart:
+				// multiply the bindings by the amount of string parts in singleparts
+				newBindings := [][]izu.Part{}
+				for _, bind := range bindings {
+					for _, str_part := range subparts {
+						newBindings = append(newBindings, append(bind, str_part))
 					}
 				}
-				keys = newKeys
+				bindings = newBindings
 			}
 		}
 
-		// loop through all the keys and validate them
-		for _, key := range keys {
-			if key == "" {
-				return fmt.Errorf("key cannot be empty")
+		// go through all binding arrays
+		for _, bind := range bindings {
+			binding := ""
+			// build up the actual keycode
+			for _, part := range bind {
+				binding += part.(*parser.String).Key
 			}
 
-			if !izu.Validate(key) {
-				return fmt.Errorf("key '%s' is invalid", key)
+			// check if the keycode is actually valid and get the actual casing
+			str, ok := izu.Validate(binding)
+			if !ok {
+				return fmt.Errorf("invalid keybind: %s", binding)
+			}
+
+			// apply the casing to the individual parts
+			j := 0
+			for i := 0; i < len(bind); i++ {
+				if strbind, ok := bind[i].(*parser.String); ok {
+					strbind.Key = str[j : j+len(strbind.Key)]
+					j += len(strbind.Key)
+				}
 			}
 		}
 	}
