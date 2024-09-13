@@ -64,5 +64,5 @@ func (cmd *Command) String() string {
 	for i, part := range cmd.parts {
 		out[i] = part.String()
 	}
-	return strings.TrimSpace(strings.Join(out, ""))
+	return strings.TrimSpace(strings.Join(out, " "))
 }
