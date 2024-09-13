@@ -294,6 +294,11 @@ func validateKeys(binding izu.Part) error {
 func (luaf *LuaFormatter) ParseString(s []byte) ([]byte, error) {
 	// create a new keybind parser
 	keybind := parser.NewKeybind()
+	//TODO: the parser can actually be changed into a list instead of a tree, that would make stuff
+	//  so much easier and the parser would be incredibly small compared to what we have now
+	//  Also, we wont have to have a process of parsing single lines for izu.ParseFile anymore if we do
+	//  it would also mean we wont be able to do hacky stuff like "XF68{Audio{Play,Pause},MediaStop}" anymore but that would only be better,
+	//  im not even sure how to make a command for this even.
 	if _, err := keybind.Parse(s); err != nil {
 		return nil, err
 	}
