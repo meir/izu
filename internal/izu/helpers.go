@@ -12,6 +12,7 @@ func registerHelpers(state *lua.LState) {
 	state.SetGlobal("lowercase", state.NewFunction(lowercase))
 	state.SetGlobal("uppercase", state.NewFunction(uppercase))
 	state.SetGlobal("pascalcase", state.NewFunction(pascalcase))
+	state.SetGlobal("has_key", state.NewFunction(hasKey))
 }
 
 // lowercase will convert a string to lowercase
@@ -32,5 +33,19 @@ func uppercase(state *lua.LState) int {
 func pascalcase(state *lua.LState) int {
 	str := state.CheckString(1)
 	state.Push(lua.LString(strcase.ToCamel(str)))
+	return 1
+}
+
+// hasKey will check if a key exists in a table
+func hasKey(state *lua.LState) int {
+	table := state.CheckTable(1)
+	key := state.CheckString(2)
+	result := false
+	table.ForEach(func(k, v lua.LValue) {
+		if v.String() == key {
+			result = true
+		}
+	})
+	state.Push(lua.LBool(result))
 	return 1
 }

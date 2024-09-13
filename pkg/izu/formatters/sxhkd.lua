@@ -7,7 +7,7 @@ function formatter.keybind (parts)
 end
 
 function formatter.command(parts)
-  return table.concat(parts, " ")
+  return table.concat(parts, "")
 end
 
 -- Super + { a, b } + XF68Media{Play,Pause}
@@ -36,8 +36,8 @@ end
 
 -- Super + { a, b } + XF68Media{Play,Pause}
 -- ^^^^^     ^  ^     ^^^^^^^^^ ^^^^ ^^^^^
-function formatter.string (part)
-  return table.concat(part, "")
+function formatter.string (part, section)
+  return part
 end
 
 return formatter

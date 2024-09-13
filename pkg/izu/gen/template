@@ -1,0 +1,10 @@
+// !!! DO NOT TOUCH !!!
+// GENERATED USING GO GENERATE
+//
+// source: %s
+package izu
+
+func init() {
+  keys = map[string]bool{%s}
+}
+

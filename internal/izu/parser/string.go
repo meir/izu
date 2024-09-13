@@ -1,6 +1,10 @@
 package parser
 
-import "github.com/meir/izu/pkg/izu"
+import (
+	"strings"
+
+	"github.com/meir/izu/pkg/izu"
+)
 
 // String will parse a string part such as
 // XF68AudioPlay
@@ -22,7 +26,7 @@ func (str *String) Info() (izu.State, []izu.Part) {
 
 // Key will return the key that has been parsed
 func (str *String) Key() string {
-	return str.key
+	return strings.TrimSpace(str.key)
 }
 
 // Parse will parse the data into the string part
@@ -30,6 +34,8 @@ func (str *String) Parse(data []byte) (int, error) {
 	for i := 0; i < len(data); i++ {
 		char := data[i]
 		switch {
+		case char == '_', char == '-':
+			fallthrough
 		case char >= 'a' && char <= 'z':
 			fallthrough
 		case char >= 'A' && char <= 'Z':
@@ -45,5 +51,5 @@ func (str *String) Parse(data []byte) (int, error) {
 
 // String will return the string representation of the string part that has been parsed
 func (str *String) String() string {
-	return str.key
+	return strings.TrimSpace(str.key)
 }

@@ -93,13 +93,7 @@ func (luaf *LuaFormatter) getFormatter() (data []byte, err error) {
 }
 
 // call is used to call a method in the lua formatter
-func (luaf *LuaFormatter) call(method izu.State, values ...string) ([]string, error) {
-	// prepare input table
-	table := luaf.state.NewTable()
-	for i, str := range values {
-		table.RawSetInt(i+1, lua.LString(str))
-	}
-
+func (luaf *LuaFormatter) call(method izu.State, value lua.LValue, section int8) ([]string, error) {
 	var luamethod lua.LValue
 	var ok bool
 	if luamethod, ok = luaf.methods[method.String()]; !ok {
@@ -111,7 +105,7 @@ func (luaf *LuaFormatter) call(method izu.State, values ...string) ([]string, er
 		Fn:      luamethod,
 		NRet:    1,
 		Protect: true,
-	}, table)
+	}, value, lua.LNumber(section))
 	if err != nil {
 		return nil, fmt.Errorf("failed to call lua formatting method %s: %w", method.String(), err)
 	}
@@ -141,7 +135,7 @@ func (luaf *LuaFormatter) call(method izu.State, values ...string) ([]string, er
 }
 
 // recursive_format is used to recursively format the keybind by going through all the parts and formatting them using lua methods
-func (luaf *LuaFormatter) recursive_format(part izu.Part) ([]string, error) {
+func (luaf *LuaFormatter) recursive_format(part izu.Part, section int8) ([]string, error) {
 	// get the state and parts of the part
 	state, parts := part.Info()
 	inputs := [][]string{}
@@ -149,13 +143,13 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part) ([]string, error) {
 	switch state {
 	case izu.StateKeybind:
 		// prepare the binding part
-		binds, err := luaf.recursive_format(parts[0])
+		binds, err := luaf.recursive_format(parts[0], 0)
 		if err != nil {
 			return nil, err
 		}
 
 		// prepare the command part
-		commands, err := luaf.recursive_format(parts[1])
+		commands, err := luaf.recursive_format(parts[1], 1)
 		if err != nil {
 			return nil, err
 		}
@@ -172,7 +166,7 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part) ([]string, error) {
 
 		// loop through all parts and format them
 		for _, part := range parts {
-			strs, err := luaf.recursive_format(part)
+			strs, err := luaf.recursive_format(part, section)
 			if err != nil {
 				return nil, err
 			}
@@ -192,7 +186,7 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part) ([]string, error) {
 		// strings should be handled differently, they should directly be called as
 		//this is the lowest AST type there is, only thing it can do is transform text
 		if str, ok := part.(*parser.String); ok {
-			return luaf.call(state, str.Key())
+			return luaf.call(state, lua.LString(str.Key()), section)
 		}
 		return nil, fmt.Errorf("formatter part is returning the wrong state")
 	}
@@ -200,13 +194,83 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part) ([]string, error) {
 	// call the lua method with the inputs
 	outputs := []string{}
 	for _, input := range inputs {
-		strs, err := luaf.call(state, input...)
+		// prepare input table
+		table := luaf.state.NewTable()
+		for i, str := range input {
+			table.RawSetInt(i+1, lua.LString(str))
+		}
+
+		// call the lua method
+		strs, err := luaf.call(state, table, section)
 		if err != nil {
 			return nil, err
 		}
 		outputs = append(outputs, strs...)
 	}
 	return outputs, nil
+}
+
+// getSingles is used to harvest all the single parts from the children of parts
+// sadly you cant find single people using this function
+func getSingles(binding izu.Part) []izu.Part {
+	state, parts := binding.Info()
+	// if this is a single state we assume it doesnt have any single children,
+	// otherwise the parser did something wrong
+	if state == izu.StateSingle {
+		return []izu.Part{binding}
+	}
+
+	// loop through all the parts and get the singles from them
+	out := []izu.Part{}
+	for _, part := range parts {
+		out = append(out, getSingles(part)...)
+	}
+	return out
+}
+
+// validateKeys is used to validate the keys in the binding
+func validateKeys(binding izu.Part) error {
+	// get all the single parts
+	singles := getSingles(binding)
+
+	// loop through all the singles and validate the keys
+	for _, single := range singles {
+		keys := []string{""}
+		_, parts := single.Info()
+		for _, part := range parts {
+			switch part.(type) {
+			case *parser.String:
+				// if its a string part, just add it to all the keys
+				for i := range keys {
+					keys[i] += part.String()
+				}
+
+			case *parser.SingleSub:
+				// if its a single sub part, multiply the keys by the parts and add each seperate part
+				newKeys := []string{}
+				for _, key := range keys {
+					_, subParts := part.Info()
+					for _, subPart := range subParts {
+						newKeys = append(newKeys, key+subPart.String())
+					}
+				}
+				keys = newKeys
+			}
+		}
+
+		// loop through all the keys and validate them
+		for _, key := range keys {
+			if key == "" {
+				return fmt.Errorf("key cannot be empty")
+			}
+
+			if !izu.Validate(key) {
+				return fmt.Errorf("key '%s' is invalid", key)
+			}
+		}
+	}
+
+	return nil
 }
 
 // ParseString is used to parse a string using the lua formatter
@@ -222,8 +286,13 @@ func (luaf *LuaFormatter) ParseString(s []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	// validate the keybind
+	if err := validateKeys(keybind); err != nil {
+		return nil, err
+	}
+
 	// format the keybind using the lua formatter
-	str, err := luaf.recursive_format(keybind)
+	str, err := luaf.recursive_format(keybind, -1)
 	return []byte(strings.Join(str, "\n")), err
 }
 
@@ -239,7 +308,10 @@ func (luaf *LuaFormatter) ParseFile(f string) ([]byte, error) {
 	}
 
 	hotkeys := []string{}
-	lines := strings.Split(string(content), "\n")
+	// split the binding from the command by newline or semicolon
+	lines := strings.FieldsFunc(string(content), func(r rune) bool {
+		return r == '\n' || r == ';'
+	})
 	// iterate through the config lines to bundle the binding and the command together
 	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
@@ -262,10 +334,8 @@ func (luaf *LuaFormatter) ParseFile(f string) ([]byte, error) {
 
 			// get the command part and check if its not empty or a comment
 			command := strings.TrimSpace(lines[i+j])
-			if command == "" {
-				return nil, fmt.Errorf("expected a command after keybind")
-			} else if command[0] == '#' {
-				// if the line is a comment, continue to the next line
+			if command == "" || command[0] == '#' {
+				// if the line is empty or a comment, continue to the next line
 				j++
 				continue
 			}
