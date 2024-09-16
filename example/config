@@ -22,4 +22,15 @@ super + alt + S ; echo "this is also valid"
 # you honestly dont even need plus signs actually, they just get ignored, but its a nice visual
 super {shift,alt} s
   echo "like this"
+
+# flags for the formatter (to use bindl for hyprland for example)
+# these flags will just be passed to the formatter function to do whatever needs to be done
+super + p | hyprland[l]
+  echo "this is a flag"
   
+# different commands per formatter
+super + {h,j,k,l}
+  sway | swaymsg focus output {left,down,up,right}
+  sxhkd | bspc node -f {west,south,north,east}
+  hyprland | hyprland -f {left,down,up,right}
+  echo "fallback command; not implemented"
