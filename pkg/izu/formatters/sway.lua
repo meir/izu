@@ -1,4 +1,11 @@
 local formatter = {}
+local izu = izu
+
+izu.registerKeycode({
+  ["super"] = "Mod4",
+  "Shift",
+  "Alt",
+})
 
 function formatter.keybind(parts)
   local bind = parts[1]
@@ -37,9 +44,6 @@ end
 -- Super + { a, b } + XF68Media{Play,Pause}
 -- ^^^^^     ^  ^     ^^^^^^^^^ ^^^^ ^^^^^
 function formatter.string (part)
-  if part == "Super" then
-    return "Mod4"
-  end
   return part
 end
 

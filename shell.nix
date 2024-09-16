@@ -11,7 +11,6 @@
   mkGoEnv ? pkgs.mkGoEnv,
   gomod2nix ? pkgs.gomod2nix,
   pre-commit-hooks,
-  buildproxy-capture,
 }:
 
 let
@@ -67,6 +66,5 @@ pkgs.mkShell {
     pkgs.go-junit-report
     pkgs.go-task
     pkgs.delve
-    buildproxy-capture
   ];
 }

@@ -275,7 +275,14 @@ func validateKeys(binding izu.Part) error {
 			j := 0
 			for i := 0; i < len(bind); i++ {
 				if strbind, ok := bind[i].(*parser.String); ok {
-					strbind.Key = str[j : j+len(strbind.Key)]
+					// this will break multi parts for custom keys but i have no idea how to map those
+					// would have to have some magic to understand how to map stuff like `XF86Audio{Play,Pause}` to a custom key like `MediaStart`
+					// realistically this wouldnt happen but for sway we need to map `Super` to `Mod4`, so you cant break it into `S{_,uper} + w` for example, because it would break in sway
+					end := j + len(strbind.Key)
+					if end > len(str) {
+						end = len(str)
+					}
+					strbind.Key = str[j:end]
 					j += len(strbind.Key)
 				}
 			}

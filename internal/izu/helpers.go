@@ -3,17 +3,19 @@ package izu
 import (
 	"strings"
 
-	"github.com/iancoleman/strcase"
 	"github.com/meir/izu/pkg/izu"
 	lua "github.com/yuin/gopher-lua"
 )
 
 // registerHelpers will register the helper functions to the lua
 func registerHelpers(state *lua.LState) {
-	state.SetGlobal("lowercase", state.NewFunction(lowercase))
-	state.SetGlobal("uppercase", state.NewFunction(uppercase))
-	state.SetGlobal("pascalcase", state.NewFunction(pascalcase))
-	state.SetGlobal("has_key", state.NewFunction(hasKey))
+	table := state.NewTable()
+	table.RawSetString("lowercase", state.NewFunction(lowercase))
+	table.RawSetString("uppercase", state.NewFunction(uppercase))
+	table.RawSetString("hasKey", state.NewFunction(hasKey))
+	table.RawSetString("registerKeycode", state.NewFunction(registerKeycode))
+
+	state.SetGlobal("izu", table)
 }
 
 // lowercase will convert a string to lowercase
@@ -27,13 +29,6 @@ func lowercase(state *lua.LState) int {
 func uppercase(state *lua.LState) int {
 	str := state.CheckString(1)
 	state.Push(lua.LString(strings.ToUpper(str)))
-	return 1
-}
-
-// pascalcase will convert a string to PascalCase
-func pascalcase(state *lua.LState) int {
-	str := state.CheckString(1)
-	state.Push(lua.LString(strcase.ToCamel(str)))
 	return 1
 }
 
@@ -52,17 +47,33 @@ func hasKey(state *lua.LState) int {
 }
 
 // addKey will add a key to the validation map
-func addKey(state *lua.LState) int {
-	value := state.Get(1)
+func registerKeycode(state *lua.LState) int {
+	keyOrValue := state.Get(1)
+	value := state.Get(2)
 
-	switch value.Type() {
+	switch keyOrValue.Type() {
 	case lua.LTString:
-		key := value.String()
-		izu.AddValidationKey(key)
+		key := keyOrValue.String()
+		value := value.String()
+
+		// if there has been no value given, we use the key as the value
+		if value == "" {
+			value = key
+			key = strings.ToLower(key)
+		}
+
+		izu.AddValidationKey(key, value)
 	case lua.LTTable:
-		value.(*lua.LTable).ForEach(func(k, v lua.LValue) {
-			key := v.String()
-			izu.AddValidationKey(key)
+		keyOrValue.(*lua.LTable).ForEach(func(k, v lua.LValue) {
+			key := k.String()
+			value := v.String()
+
+			// if the key is a number, we use the value as the key
+			if strings.Trim(key, "0123456789") == "" {
+				key = strings.ToLower(value)
+			}
+
+			izu.AddValidationKey(key, value)
 		})
 	}
 	return 0

@@ -26,15 +26,28 @@ var template_array string
 var regex = regexp.MustCompile(`\#define XKB_KEY_([a-zA-Z_0-9]+)\s`)
 
 func main() {
-	response, err := http.Get(source)
+	var content []byte
+	var err error
+	var response *http.Response
+
+	if os.Getenv("FILE") != "" {
+		content, err = os.ReadFile(os.Getenv("FILE"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		goto SkipCall
+	}
+
+	response, err = http.Get(source)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	content, err := io.ReadAll(response.Body)
+	content, err = io.ReadAll(response.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
+SkipCall:
 
 	keys := []string{}
 	for _, match := range regex.FindAllStringSubmatch(string(content), -1) {

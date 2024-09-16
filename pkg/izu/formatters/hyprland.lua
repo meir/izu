@@ -1,4 +1,5 @@
 local formatter = {}
+local izu = izu
 
 
 local modifiers = {
@@ -13,6 +14,12 @@ local modifiers = {
   "escape",
   "apostrophe",
 }
+
+izu.registerKeycode({
+  "SUPER",
+  "SHIFT",
+  "ALT",
+})
 
 function formatter.keybind(parts)
   local bind = parts[1]
@@ -31,14 +38,14 @@ function formatter.base (parts)
   local key_list = {}
 
   for _, part in ipairs(parts) do
-    if has_key(modifiers, lowercase(part)) then
+    if izu.hasKey(modifiers, izu.lowercase(part)) then
       table.insert(modifier_list, part)
     else
       table.insert(key_list, part)
     end
   end
 
-  return table.concat(modifier_list, "&") .. ", " .. table.concat(key_list, "&")
+  return table.concat(modifier_list, "_") .. ", " .. table.concat(key_list, "&")
 end
 
 -- Super + { a, b } + XF68Media{Play,Pause}
@@ -62,11 +69,7 @@ end
 -- Super + { a, b } + XF68Media{Play,Pause}
 -- ^^^^^     ^  ^     ^^^^^^^^^ ^^^^ ^^^^^
 function formatter.string (part, section)
-  if section == 1 then
-    return part
-  end
-
-  return pascalcase(part)
+  return part
 end
 
 return formatter

@@ -69,6 +69,6 @@ func Validate(name string) (string, bool) {
 	return str, ok
 }
 
-func AddValidationKey(name string) {
-	keys[strings.ToLower(name)] = name
+func AddValidationKey(key, name string) {
+	keys[key] = name
 }

@@ -1,4 +1,11 @@
 local formatter = {}
+local izu = izu
+
+izu.registerKeycode({
+  "Super",
+  "Alt",
+  "Shift",
+})
 
 function formatter.keybind (parts)
   local bind = parts[1]

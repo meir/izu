@@ -1,25 +1,25 @@
 
-Super_L + XF86Audio{Play,Pause}
+Super + XF86Audio{Play,Pause}
   playerctl --{play,pause}
 
 # this is a comment
-Super_L + W
+Super + W
   walld
 
-Super_L + Return
+Super + Return
   # comments can be placed between these aswell
   echo "and run this"
 
 # the formatter only cares about there being 2 lines with text, spaces and enters do not matter
-Super_L+Shift_L+Return
+Super+Shift+Return
 
 echo "like this"
 
 
 # they can also be seperated using a semicolon like so
-super_l + alt_l + S ; echo "this is also valid"
+super + alt + S ; echo "this is also valid"
 
 # you honestly dont even need plus signs actually, they just get ignored, but its a nice visual
-super_l {shift_l,alt_l} s
+super {shift,alt} s
   echo "like this"
   

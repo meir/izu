@@ -12,7 +12,7 @@
     }
   ),
   buildGoApplication ? pkgs.buildGoApplication,
-  mkBuildproxy,
+  fetchurl ? pkgs.fetchurl,
 }:
 
 buildGoApplication rec {
@@ -20,9 +20,12 @@ buildGoApplication rec {
   version = "0.1";
   pwd = ./.;
   src = ./.;
+  file = fetchurl {
+    url = "https://raw.githubusercontent.com/xkbcommon/libxkbcommon/master/include/xkbcommon/xkbcommon-keysyms.h";
+    hash = "sha256-uPDT22f98wWHAKcBP7QEsrDUP4mGKizzvLsEeWAZEjE=";
+  };
   preBuild = ''
-    source ${mkBuildproxy ./proxy_content.nix}
-    go generate ./...
+    FILE="${file}" go generate ./...
   '';
   modules = ./gomod2nix.toml;
 }
