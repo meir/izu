@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/meir/izu/internal/izu"
+	"github.com/meir/izu/internal/izu/parser"
 	"github.com/urfave/cli/v2"
 )
 
@@ -44,26 +43,40 @@ func main() {
 				return cli.Exit("formatter is required", 1)
 			}
 
-			formatter, err := izu.NewLuaFormatter(c.String("formatter"))
+			content, err := os.ReadFile(c.String("config"))
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			if c.String("config") != "" {
-				content, err := formatter.ParseFile(c.String("config"))
-				if err != nil {
-					return cli.Exit(err.Error(), 1)
-				}
-				fmt.Println(string(content))
+			hotkeys, err := parser.Parse(content)
+			if err != nil {
+				return cli.Exit(err.Error(), 1)
 			}
 
-			if c.String("string") != "" {
-				content, err := formatter.ParseString([]byte(c.String("string")))
-				if err != nil {
-					return cli.Exit(err.Error(), 1)
-				}
-				fmt.Println(string(content))
+			for _, hotkey := range hotkeys {
+				println(hotkey.String())
 			}
+
+			// formatter, err := izu.NewLuaFormatter(c.String("formatter"))
+			// if err != nil {
+			// 	return cli.Exit(err.Error(), 1)
+			// }
+			//
+			// if c.String("config") != "" {
+			// 	content, err := formatter.ParseFile(c.String("config"))
+			// 	if err != nil {
+			// 		return cli.Exit(err.Error(), 1)
+			// 	}
+			// 	fmt.Println(string(content))
+			// }
+			//
+			// if c.String("string") != "" {
+			// 	content, err := formatter.ParseString([]byte(c.String("string")))
+			// 	if err != nil {
+			// 		return cli.Exit(err.Error(), 1)
+			// 	}
+			// 	fmt.Println(string(content))
+			// }
 
 			return nil
 		},

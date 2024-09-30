@@ -1,22 +1,13 @@
 
-Super + XF86Audio{Play,Pause}
-  playerctl --{play,pause}
-
-# this is a comment
+# this is a basic example of a hotkey
 Super + W
   walld
 
-Super + Return
-  # comments can be placed between these aswell
-  echo "and run this"
+# you can also make subpaths like in sxhkd so you wont have to make a billion hotkeys for the same commands with different arguments
+Super + XF86Audio{Play,Pause}
+  playerctl --{play,pause}
 
-# the formatter only cares about there being 2 lines with text, spaces and enters do not matter
-Super+Shift+Return
-
-echo "like this"
-
-
-# they can also be seperated using a semicolon like so
+# you can also make a single line hotkey like this
 super + alt + S ; echo "this is also valid"
 
 # you honestly dont even need plus signs actually, they just get ignored, but its a nice visual
@@ -29,6 +20,8 @@ super + p | hyprland[l]
   echo "this is a flag"
   
 # different commands per formatter
+# unless the formatter lua file validates commands, this program will not
+# so system specific errors will always be caused by your hotkey daemon
 super + {h,j,k,l}
   sway | swaymsg focus output {left,down,up,right}
   sxhkd | bspc node -f {west,south,north,east}

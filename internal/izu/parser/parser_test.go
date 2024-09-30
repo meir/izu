@@ -2,70 +2,159 @@ package parser
 
 import (
 	"testing"
+
+	"github.com/meir/izu/pkg/izu"
 )
 
-func Test_base(t *testing.T) {
+func TestParser(t *testing.T) {
 	cases := []struct {
-		in  string
-		out string
-		err bool
+		input string
+
+		hotkeys []izu.Hotkey
 	}{
-		{"", "", false},
-		{"a", "a", false},
-		{"a + b", "a + b", false},
-		{"a + b + c", "a + b + c", false},
-		{"a + {a, b} + d", "a + { a, b } + d", false},
-		{"a + {_, b + e + } d", "a + { _, b + e } + d", false},
-		{"a + {_, b +} d", "a + { _, b } + d", false},
-		{"XF68Media{Play,Pause}", "XF68Media{Play,Pause}", false},
-		{"a + }", "a", false},
+		{
+			input: `a + b + c; echo hello`,
+			hotkeys: []izu.Hotkey{
+				{
+					Binding: izu.NewDefaultPartList(
+						" + ",
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"a"})},
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"b"})},
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"c"})},
+					),
+					Command: map[string]izu.PartList{
+						"default": izu.NewDefaultPartList(
+							"",
+							// commands use the same system but are parsed differently to store as much of the original command as possible
+							&PartSingle{izu.NewDefaultPartList(
+								"",
+								&PartString{"echo"},
+								&PartString{" "},
+								&PartString{"hello"},
+							)},
+						),
+					},
+					Flags: map[string][]string{},
+				},
+			},
+		},
+		{
+			input: `a + b + c | test[left]; echo hello`,
+			hotkeys: []izu.Hotkey{
+				{
+					Binding: izu.NewDefaultPartList(
+						" + ",
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"a"})},
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"b"})},
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"c"})},
+					),
+					Command: map[string]izu.PartList{
+						"default": izu.NewDefaultPartList(
+							"",
+							&PartSingle{izu.NewDefaultPartList("", &PartString{"echo hello"})},
+						),
+					},
+					Flags: map[string][]string{
+						"test": {"left"},
+					},
+				},
+			},
+		},
+		{
+			input: `a + b + c | test[right]; abc | echo hello`,
+			hotkeys: []izu.Hotkey{
+				{
+					Binding: izu.NewDefaultPartList(
+						" + ",
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"a"})},
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"b"})},
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"c"})},
+					),
+					Command: map[string]izu.PartList{
+						"abc": izu.NewDefaultPartList(
+							"",
+							&PartSingle{izu.NewDefaultPartList("", &PartString{"echo hello"})},
+						),
+					},
+					Flags: map[string][]string{
+						"test": {"right"},
+					},
+				},
+			},
+		},
+		{
+			input: `super + XF86Audio{Play,Pause} | test[right]; abc | playerctl {play,pause}`,
+			hotkeys: []izu.Hotkey{
+				{
+					Binding: izu.NewDefaultPartList(
+						" + ",
+						&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"super"})},
+						&PartSingle{izu.NewDefaultPartList(
+							" + ",
+							&PartString{"XF86Audio"},
+							&PartMultiple{
+								izu.NewDefaultPartListWithNfixes(
+									"{",
+									",",
+									"}",
+									&PartBinding{
+										izu.NewDefaultPartList(
+											" + ",
+											&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"Play"})},
+										),
+									},
+									&PartBinding{
+										izu.NewDefaultPartList(
+											" + ",
+											&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"Pause"})},
+										),
+									},
+								),
+							},
+						)},
+					),
+					Command: map[string]izu.PartList{
+						"abc": izu.NewDefaultPartList(
+							"",
+							&PartSingle{
+								izu.NewDefaultPartList("", &PartString{"playerctl "},
+									&PartMultiple{
+										izu.NewDefaultPartListWithNfixes(
+											"{",
+											",",
+											"}",
+											&PartString{"play"},
+											&PartString{"pause"},
+										),
+									},
+								),
+							},
+						),
+					},
+					Flags: map[string][]string{
+						"test": {"right"},
+					},
+				},
+			},
+		},
 	}
 
-	for i, tc := range cases {
-		path := NewBase()
-		_, err := path.Parse([]byte(tc.in))
-
-		if tc.err == (err == nil) {
-			t.Errorf("case %d: unexpected error: %v", i, err)
+	for _, c := range cases {
+		hotkeys, err := Parse([]byte(c.input))
+		if err != nil {
+			t.Errorf("'%s' returned error: %v", c.input, err)
+			continue
 		}
 
-		out := path.String()
-		if out != tc.out {
-			t.Errorf("case %d: expected %q, got %q", i, tc.out, out)
-		}
-	}
-}
-
-func Test_keybind(t *testing.T) {
-	cases := []struct {
-		in  string
-		out string
-		err bool
-	}{
-		{"", "", true},
-		{"a\necho", "a\n\techo", false},
-		{"a + b\necho", "a + b\n\techo", false},
-		{"a + b + c\necho", "a + b + c\n\techo", false},
-		{"a + {a, b} + d\necho {a, b}", "a + { a, b } + d\n\techo {a, b}", false},
-		{"a + {_, b + e + } d\n echo {a, b}", "a + { _, b + e } + d\n\techo {a, b}", false},
-		{"a + {_, b +} d\n echo {a, b}", "a + { _, b } + d\n\techo {a, b}", false},
-		{"XF68Media{Play,Pause}\n echo {a, b}", "XF68Media{Play,Pause}\n\techo {a, b}", false},
-		{"a + }\necho", "", true},
-		{"a + }", "", true},
-		{"a", "", true},
-	}
-
-	for i, tc := range cases {
-		path := NewKeybind()
-		_, err := path.Parse([]byte(tc.in))
-
-		if tc.err == (err == nil) {
-			t.Errorf("case %d: unexpected error: %v", i, err)
+		if len(hotkeys) != len(c.hotkeys) {
+			t.Errorf("'%s' returned %d hotkeys, want %d", c.input, len(hotkeys), len(c.hotkeys))
+			continue
 		}
 
-		out := path.String()
-		if out != tc.out {
-			t.Errorf("case %d: expected %q, got %q", i, tc.out, out)
+		for i, hotkey := range hotkeys {
+			if hotkey.String() != c.hotkeys[i].String() {
+				t.Errorf("'%s' returned hotkey %d: got '%s', want '%s'", c.input, i, hotkey.String(), c.hotkeys[i].String())
+			}
 		}
 	}
 }

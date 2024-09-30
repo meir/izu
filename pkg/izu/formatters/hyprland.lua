@@ -21,7 +21,7 @@ izu.registerKeycode({
   "ALT",
 })
 
-function formatter.keybind(parts)
+function formatter.binding(parts)
   local bind = parts[1]
   local command = parts[2]
   return "bind = " .. bind .. ", exec, " .. command

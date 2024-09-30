@@ -2,27 +2,121 @@ package izu
 
 import (
 	"embed"
+	"fmt"
 	"strings"
 )
 
 // State is the type that defines the AST type
-type State uint8
+type AST uint8
 
 const (
-	StateKeybind State = iota
-	StateCommand
-	StateBase
-	StateMultiple
-	StateSingle
-	StateSinglePart
-	StateString
+	ASTBinding AST = iota
+	ASTSingle
+	ASTMultiple
+	ASTString
 )
 
 // Part is the interface that should be implemented for single AST parts
 type Part interface {
-	Info() (State, []Part)
-	Parse([]byte) (int, error)
+	Info() (AST, PartList)
+	Append(...Part)
 	String() string
+}
+
+type Hotkey struct {
+	Binding PartList
+	Flags   map[string][]string
+	Command map[string]PartList
+}
+
+type PartList interface {
+	Iterate(func(Part) error) error
+	Append(...Part) PartList
+	String() string
+}
+
+type DefaultPartList struct {
+	pre, seperator, suf string
+	parts               []Part
+}
+
+func NewDefaultPartList(seperator string, parts ...Part) PartList {
+	return DefaultPartList{
+		"",
+		seperator,
+		"",
+		parts,
+	}
+}
+
+func NewDefaultPartListWithNfixes(pre, sep, suf string, parts ...Part) PartList {
+	return DefaultPartList{
+		pre,
+		sep,
+		suf,
+		parts,
+	}
+}
+
+func (p DefaultPartList) Iterate(fn func(Part) error) error {
+	for _, part := range p.parts {
+		err := fn(part)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p DefaultPartList) Append(part ...Part) PartList {
+	p.parts = append(p.parts, part...)
+	return p
+}
+
+func (p DefaultPartList) String() string {
+	output := []string{}
+	for _, part := range p.parts {
+		AST, parts := part.Info()
+		switch AST {
+		case ASTString:
+			output = append(output, part.String())
+		default:
+			output = append(output, parts.String())
+		}
+	}
+	return fmt.Sprintf("%s%s%s", p.pre, strings.Join(output, p.seperator), p.suf)
+}
+
+func (hotkey Hotkey) String() string {
+	binding := hotkey.Binding.String()
+
+	flaglist := []string{}
+	for flag, values := range hotkey.Flags {
+		flaglist = append(flaglist, fmt.Sprintf("%s[%s]", flag, strings.Join(values, " ")))
+	}
+	flags := strings.Join(flaglist, " ")
+	if flags != "" {
+		flags = " | " + flags
+	}
+
+	commandlist := []string{}
+	for command, parts := range hotkey.Command {
+		pre := ""
+		if command != "default" {
+			pre = fmt.Sprintf("%s | ", command)
+		}
+		commandlist = append(commandlist, fmt.Sprintf("  %s%s", pre, parts.String()))
+	}
+	commands := strings.Join(commandlist, "\n")
+	if commands != "" {
+		commands = "\n" + commands
+	}
+
+	return fmt.Sprintf("%s%s%s\n", binding, flags, commands)
+}
+
+type Parser interface {
+	Parse([]byte) ([]Hotkey, error)
 }
 
 // Formatter is the interface that should be implemented for all hotkey formatters
@@ -35,27 +129,21 @@ type Formatter interface {
 //go:embed formatters/*
 var Formatters embed.FS
 
+// stateMap is a map that maps the AST type to a readable name for it
+var stateMap = map[AST]string{
+	ASTBinding:  "binding",
+	ASTSingle:   "single",
+	ASTMultiple: "multiple",
+	ASTString:   "string",
+}
+
 // String will return the string representation of the state
 // This should also be used to define the names of formatter functions
-func (state State) String() string {
-	switch state {
-	case StateKeybind:
-		return "keybind"
-	case StateCommand:
-		return "command"
-	case StateBase:
-		return "base"
-	case StateMultiple:
-		return "multiple"
-	case StateSingle:
-		return "single"
-	case StateSinglePart:
-		return "single_part"
-	case StateString:
-		return "string"
-	default:
-		panic("invalid state")
+func (state AST) String() string {
+	if str, ok := stateMap[state]; ok {
+		return str
 	}
+	panic("invalid state")
 }
 
 var keys = map[string]string{}

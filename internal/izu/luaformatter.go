@@ -51,13 +51,10 @@ func (luaf *LuaFormatter) load() error {
 	luaf.methods = make(map[string]lua.LValue)
 	if tbl, ok := ret.(*lua.LTable); ok {
 		methods := []string{
-			izu.StateKeybind.String(),
-			izu.StateCommand.String(),
-			izu.StateBase.String(),
-			izu.StateMultiple.String(),
-			izu.StateSingle.String(),
-			izu.StateSinglePart.String(),
-			izu.StateString.String(),
+			izu.ASTBinding.String(),
+			izu.ASTSingle.String(),
+			izu.ASTMultiple.String(),
+			izu.ASTString.String(),
 		}
 
 		for _, method := range methods {
@@ -93,7 +90,7 @@ func (luaf *LuaFormatter) getFormatter() (data []byte, err error) {
 }
 
 // call is used to call a method in the lua formatter
-func (luaf *LuaFormatter) call(method izu.State, value lua.LValue, section int8) ([]string, error) {
+func (luaf *LuaFormatter) call(method izu.AST, value lua.LValue, section int8) ([]string, error) {
 	var luamethod lua.LValue
 	var ok bool
 	if luamethod, ok = luaf.methods[method.String()]; !ok {
@@ -135,60 +132,42 @@ func (luaf *LuaFormatter) call(method izu.State, value lua.LValue, section int8)
 }
 
 // recursive_format is used to recursively format the keybind by going through all the parts and formatting them using lua methods
-func (luaf *LuaFormatter) recursive_format(part izu.Part, section int8) ([]string, error) {
-	// get the state and parts of the part
-	state, parts := part.Info()
+func (luaf *LuaFormatter) recursive_format(hotkeys []*izu.Hotkey, section int8) ([]string, error) {
 	inputs := [][]string{}
+	for _, hotkey := range hotkeys {
+		// get the state and parts of the part
+		state, parts := hotkey.Info()
 
-	switch state {
-	case izu.StateKeybind:
-		// prepare the binding part
-		binds, err := luaf.recursive_format(parts[0], 0)
-		if err != nil {
-			return nil, err
-		}
+		switch state {
+		case izu.ASTBinding, izu.ASTSingle, izu.ASTMultiple:
+			// initialize the first line
+			inputs = append(inputs, []string{})
 
-		// prepare the command part
-		commands, err := luaf.recursive_format(parts[1], 1)
-		if err != nil {
-			return nil, err
-		}
+			// loop through all parts and format them
+			err := parts.Iterate(func(part izu.Part) error {
+				strs, err := luaf.recursive_format(part, section)
+				if err != nil {
+					return err
+				}
 
-		// mesh the commands onto the bindings
-		for i := range binds {
-			inputs = append(inputs, []string{binds[i], commands[i%len(commands)]})
-		}
-		break
-
-	case izu.StateCommand, izu.StateBase, izu.StateMultiple, izu.StateSingle, izu.StateSinglePart:
-		// initialize the first line
-		inputs = append(inputs, []string{})
-
-		// loop through all parts and format them
-		for _, part := range parts {
-			strs, err := luaf.recursive_format(part, section)
+				// mesh the lines and the formatted strings together like a matrix
+				newInputs := make([][]string, len(inputs)*len(strs))
+				for i, str := range strs {
+					for j, input := range inputs {
+						newInputs[i*len(inputs)+j] = append(input, str)
+					}
+				}
+				inputs = newInputs
+				return nil
+			})
 			if err != nil {
 				return nil, err
 			}
+			break
 
-			// mesh the lines and the formatted strings together like a matrix
-			newInputs := make([][]string, len(inputs)*len(strs))
-			for i, str := range strs {
-				for j, input := range inputs {
-					newInputs[i*len(inputs)+j] = append(input, str)
-				}
-			}
-			inputs = newInputs
+		case izu.ASTString:
+			return luaf.call(state, lua.LString(part.String()), section)
 		}
-		break
-
-	case izu.StateString:
-		// strings should be handled differently, they should directly be called as
-		//this is the lowest AST type there is, only thing it can do is transform text
-		if str, ok := part.(*parser.String); ok {
-			return luaf.call(state, lua.LString(str.Key), section)
-		}
-		return nil, fmt.Errorf("formatter part is returning the wrong state")
 	}
 
 	// call the lua method with the inputs
@@ -210,59 +189,58 @@ func (luaf *LuaFormatter) recursive_format(part izu.Part, section int8) ([]strin
 	return outputs, nil
 }
 
-// getSingles is used to harvest all the single parts from the children of parts
+// getSingles is used to iterate through the partlist tree and find any single parts
 // sadly you cant find single people using this function
-func getSingles(binding izu.Part) []izu.Part {
-	state, parts := binding.Info()
-	// if this is a single state we assume it doesnt have any single children,
-	// otherwise the parser did something wrong
-	if state == izu.StateSingle {
-		return []izu.Part{binding}
-	}
-
-	// loop through all the parts and get the singles from them
-	out := []izu.Part{}
-	for _, part := range parts {
-		out = append(out, getSingles(part)...)
-	}
-	return out
+func getSingles(partlist izu.PartList) []izu.Part {
+	singles := []izu.Part{}
+	partlist.Iterate(func(part izu.Part) error {
+		if kind, subpartlist := part.Info(); kind == izu.ASTSingle {
+			singles = append(singles, part)
+		} else {
+			singles = append(singles, getSingles(subpartlist)...)
+		}
+		return nil
+	})
+	return singles
 }
 
 // validateKeys is used to validate the keys in the binding
-func validateKeys(binding izu.Part) error {
+func validateKeys(binding izu.PartList) error {
 	// go through all single parts
 	for _, part := range getSingles(binding) {
 		bindings := [][]izu.Part{{}}
 		_, parts := part.Info()
 
 		// add the parts accordingly to the array as either string or get the string parts from the singlepart
-		for _, sub_part := range parts {
+		parts.Iterate(func(sub_part izu.Part) error {
 			state, subparts := sub_part.Info()
 
 			switch state {
-			case izu.StateString:
+			case izu.ASTString:
 				// add the string part to all the bindings
 				for bind := range bindings {
 					bindings[bind] = append(bindings[bind], sub_part)
 				}
-			case izu.StateSinglePart:
-				// multiply the bindings by the amount of string parts in singleparts
+			case izu.ASTMultiple:
+				// multiply the bindings by the amount of string parts in multiple
 				newBindings := [][]izu.Part{}
 				for _, bind := range bindings {
-					for _, str_part := range subparts {
-						newBindings = append(newBindings, append(bind, str_part))
-					}
+					subparts.Iterate(func(subbinding izu.Part) error {
+						newBindings = append(newBindings, append(bind, subbinding))
+						return nil
+					})
 				}
 				bindings = newBindings
 			}
-		}
+			return nil
+		})
 
 		// go through all binding arrays
 		for _, bind := range bindings {
 			binding := ""
 			// build up the actual keycode
 			for _, part := range bind {
-				binding += part.(*parser.String).Key
+				binding += part.String()
 			}
 
 			// check if the keycode is actually valid and get the actual casing
@@ -274,16 +252,16 @@ func validateKeys(binding izu.Part) error {
 			// apply the casing to the individual parts
 			j := 0
 			for i := 0; i < len(bind); i++ {
-				if strbind, ok := bind[i].(*parser.String); ok {
+				if kind, _ := bind[i].Info(); kind == izu.ASTString {
 					// this will break multi parts for custom keys but i have no idea how to map those
 					// would have to have some magic to understand how to map stuff like `XF86Audio{Play,Pause}` to a custom key like `MediaStart`
 					// realistically this wouldnt happen but for sway we need to map `Super` to `Mod4`, so you cant break it into `S{_,uper} + w` for example, because it would break in sway
-					end := j + len(strbind.Key)
+					end := j + len(bind[i].String())
 					if end > len(str) {
 						end = len(str)
 					}
-					strbind.Key = str[j:end]
-					j += len(strbind.Key)
+					bind[i].Append(parser.NewPartString(str[j:end]))
+					j += len(bind[i].String())
 				}
 			}
 		}
@@ -300,23 +278,20 @@ func validateKeys(binding izu.Part) error {
 // playerctl --{play,pause}
 func (luaf *LuaFormatter) ParseString(s []byte) ([]byte, error) {
 	// create a new keybind parser
-	keybind := parser.NewKeybind()
-	//TODO: the parser can actually be changed into a list instead of a tree, that would make stuff
-	//  so much easier and the parser would be incredibly small compared to what we have now
-	//  Also, we wont have to have a process of parsing single lines for izu.ParseFile anymore if we do
-	//  it would also mean we wont be able to do hacky stuff like "XF68{Audio{Play,Pause},MediaStop}" anymore but that would only be better,
-	//  im not even sure how to make a command for this even.
-	if _, err := keybind.Parse(s); err != nil {
+	hotkeys, err := parser.Parse(s)
+	if err != nil {
 		return nil, err
 	}
 
 	// validate the keybind
-	if err := validateKeys(keybind); err != nil {
-		return nil, err
+	for _, hotkey := range hotkeys {
+		if err := validateKeys(hotkey.Binding); err != nil {
+			return nil, err
+		}
 	}
 
 	// format the keybind using the lua formatter
-	str, err := luaf.recursive_format(keybind, -1)
+	str, err := luaf.recursive_format(hotkeys, -1)
 	return []byte(strings.Join(str, "\n")), err
 }
 
@@ -331,56 +306,5 @@ func (luaf *LuaFormatter) ParseFile(f string) ([]byte, error) {
 		return nil, err
 	}
 
-	hotkeys := []string{}
-	// split the binding from the command by newline or semicolon
-	lines := strings.FieldsFunc(string(content), func(r rune) bool {
-		return r == '\n' || r == ';'
-	})
-	// iterate through the config lines to bundle the binding and the command together
-	for i := 0; i < len(lines); i++ {
-		line := strings.TrimSpace(lines[i])
-		// skip if the line is empty or commented
-		if line == "" || line[0] == '#' {
-			continue
-		}
-
-		// binding part
-		bind := line
-
-		// iterate through the config lines to find the command thats part of the binding
-		// if the config file ends or has only comments left, it will return an error
-		j := 1
-		for {
-			// check if file hasnt ended yet
-			if len(lines) < i+j {
-				return nil, fmt.Errorf("expected a command after keybind")
-			}
-
-			// get the command part and check if its not empty or a comment
-			command := strings.TrimSpace(lines[i+j])
-			if command == "" || command[0] == '#' {
-				// if the line is empty or a comment, continue to the next line
-				j++
-				continue
-			}
-
-			// combine the binding and the command
-			hotkeys = append(hotkeys, bind+"\n"+command)
-			i += j
-			break
-		}
-	}
-
-	// process all the hotkeys found
-	output := []string{}
-	for _, hotkey := range hotkeys {
-		binding, err := luaf.ParseString([]byte(hotkey))
-		if err != nil {
-			return nil, err
-		}
-
-		output = append(output, string(binding))
-	}
-
-	return []byte(strings.Join(output, "\n\n")), nil
+	return luaf.ParseString(content)
 }
