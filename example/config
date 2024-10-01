@@ -4,8 +4,8 @@ Super + W
   walld
 
 # you can also make subpaths like in sxhkd so you wont have to make a billion hotkeys for the same commands with different arguments
-Super + XF86Audio{Play,Pause}
-  playerctl --{play,pause}
+Super + {Shift,_} + XF86Audio{Play,Pause}
+  playerctl {--verbose ,}--{play,pause} test
 
 # you can also make a single line hotkey like this
 super + alt + S ; echo "this is also valid"

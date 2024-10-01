@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/meir/izu/internal/izu/parser"
+	"github.com/meir/izu/internal/parser"
 	"github.com/meir/izu/pkg/izu"
 	lua "github.com/yuin/gopher-lua"
 )

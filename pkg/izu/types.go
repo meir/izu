@@ -10,7 +10,8 @@ import (
 type AST uint8
 
 const (
-	ASTBinding AST = iota
+	ASTHotkey AST = iota
+	ASTBinding
 	ASTSingle
 	ASTMultiple
 	ASTString
@@ -24,9 +25,9 @@ type Part interface {
 }
 
 type Hotkey struct {
-	Binding PartList
+	Binding Part
 	Flags   map[string][]string
-	Command map[string]PartList
+	Command map[string]Part
 }
 
 type PartList interface {
@@ -127,10 +128,15 @@ type Formatter interface {
 }
 
 //go:embed formatters/*
-var Formatters embed.FS
+var formatters embed.FS
+
+func GetFormatterFile(language, system string) ([]byte, error) {
+	return formatters.ReadFile(fmt.Sprintf("formatters/%s/%s.lua", language, system))
+}
 
 // stateMap is a map that maps the AST type to a readable name for it
 var stateMap = map[AST]string{
+	ASTHotkey:   "hotkey",
 	ASTBinding:  "binding",
 	ASTSingle:   "single",
 	ASTMultiple: "multiple",

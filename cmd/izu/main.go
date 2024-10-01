@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/meir/izu/internal/izu/parser"
+	"github.com/meir/izu/internal/luaformatter"
+	"github.com/meir/izu/internal/parser"
 	"github.com/urfave/cli/v2"
 )
 
@@ -53,8 +55,18 @@ func main() {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			for _, hotkey := range hotkeys {
-				println(hotkey.String())
+			formatter, err := luaformatter.NewFormatter(c.String("formatter"))
+			if err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
+			lines, err := formatter.Format(hotkeys)
+			if err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
+			for _, line := range lines {
+				fmt.Println(line)
 			}
 
 			// formatter, err := izu.NewLuaFormatter(c.String("formatter"))

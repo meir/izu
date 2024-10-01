@@ -118,38 +118,38 @@ func parseCommand(parent izu.Part, tokenizer *Tokenizer) error {
 		token := tokenizer.Current()
 		switch token.Kind() {
 		case TokenMultiOpen:
-			// if we get a TokenMultiOpen, do the same as in the parseBinding method,
-			// the multi for the commands arent any different except that the spaces are kept aswell
+			// create a new multiple part
 			multiple := &PartMultiple{izu.NewDefaultPartListWithNfixes("{", ",", "}")}
 
+			// skip the { so that the next parser wont be stuck on it and create an infinite loop
 			tokenizer.Next()
+			// get all the tokens till the closing part
 			tokens, _ := tokenizer.Until(TokenMultiClose)
 			subtokenizer := NewTokenizerFromTokens(tokens)
-		Loop:
-			for {
-				// use a single instead of a binding, this is to differentiate from the binding in the next case
-				binding := &PartSingle{izu.NewDefaultPartList("")}
-				err := parseCommand(binding, subtokenizer)
-				if err != nil {
-					return err
-				}
 
-				multiple.parts = multiple.parts.Append(binding)
-				switch subtokenizer.Peek().Kind() {
+			// create a new binding and start parsing using that as the parent
+			// this binding will be one of the paths in the multiple, such as {binding,binding}
+			binding := &PartBinding{izu.NewDefaultPartList("")}
+			multiple.Append(binding)
+		Loop:
+			for subtokenizer.Next() {
+				token := subtokenizer.Current()
+
+				switch token.Kind() {
+				case TokenMultiDivide:
+					binding = &PartBinding{izu.NewDefaultPartList("")}
+					multiple.Append(binding)
 				case TokenMultiClose, TokenEOF:
 					break Loop
+				default:
+					binding.Append(&PartString{
+						value: token.String(),
+					})
 				}
 			}
 
+			// add the multiple to the parent
 			parent.Append(multiple)
-
-		case TokenMultiDivide:
-			// we use ASTSingle here instead of ASTBinding,
-			// this is so that we can seperate the multiple paths properly yet still keep commas in the command
-			if kind, _ := parent.Info(); kind == izu.ASTSingle {
-				return nil
-			}
-			fallthrough
 
 		default:
 			// dump everything into a string and into the parent
@@ -200,8 +200,8 @@ func stateBinding(tokenizer *Tokenizer, hotkeys *[]*izu.Hotkey, state *ParserSta
 
 	// add the hotkey, subsequent states will fill this hotkey further
 	*hotkeys = append(*hotkeys, &izu.Hotkey{
-		Binding: izu.NewDefaultPartList(" + ", bindingPart),
-		Command: map[string]izu.PartList{},
+		Binding: bindingPart,
+		Command: map[string]izu.Part{},
 		Flags:   map[string][]string{},
 	})
 
@@ -323,10 +323,10 @@ func stateCommand(tokenizer *Tokenizer, hotkeys *[]*izu.Hotkey, state *ParserSta
 		return err
 	}
 	// because we want the command parser to start with index-1 so that the first Next() will be at the start
-	_, partlist := commandBinding.Info()
-	(*hotkeys)[len(*hotkeys)-1].Command[system] = partlist
+	(*hotkeys)[len(*hotkeys)-1].Command[system] = commandBinding
 
-	if tokenizer.Peek().Kind() == TokenNewLine {
+	_, token = tokenizer.UntilNot(TokenEmpty)
+	if token.Kind() == TokenNewLine {
 		*state = StateRoot
 	}
 	return nil
