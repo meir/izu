@@ -1,4 +1,4 @@
-package izu
+package luaformatter
 
 import (
 	"strings"
@@ -6,17 +6,6 @@ import (
 	"github.com/meir/izu/pkg/izu"
 	lua "github.com/yuin/gopher-lua"
 )
-
-// registerHelpers will register the helper functions to the lua
-func registerHelpers(state *lua.LState) {
-	table := state.NewTable()
-	table.RawSetString("lowercase", state.NewFunction(lowercase))
-	table.RawSetString("uppercase", state.NewFunction(uppercase))
-	table.RawSetString("hasKey", state.NewFunction(hasKey))
-	table.RawSetString("registerKeycode", state.NewFunction(registerKeycode))
-
-	state.SetGlobal("izu", table)
-}
 
 // lowercase will convert a string to lowercase
 func lowercase(state *lua.LState) int {
