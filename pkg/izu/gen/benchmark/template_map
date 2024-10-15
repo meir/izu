@@ -1,0 +1,12 @@
+// !!! DO NOT TOUCH !!!
+// GENERATED USING GO GENERATE
+//
+// source: %s
+package main
+
+var keys_map = map[string]bool{%s}
+
+func validate_map(key string) bool {
+  _, ok := keys_map[key]
+  return ok
+}

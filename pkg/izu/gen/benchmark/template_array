@@ -1,0 +1,13 @@
+// !!! DO NOT TOUCH !!!
+// GENERATED USING GO GENERATE
+//
+// source: %s
+package main
+
+import "slices"
+
+var keys_array = []string{%s}
+
+func validate_array(key string) bool {
+  return slices.Contains(keys_array, key)
+}

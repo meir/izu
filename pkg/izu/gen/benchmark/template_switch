@@ -1,0 +1,16 @@
+// !!! DO NOT TOUCH !!!
+// GENERATED USING GO GENERATE
+//
+// source: %s
+package main
+
+import "strings"
+
+func validate_switch(key string) bool {
+  switch strings.ToLower(key) {
+    case %s:
+      return true
+    default:
+      return false
+  }
+}
