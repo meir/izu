@@ -131,7 +131,6 @@ func parseCommand(parent izu.Part, tokenizer *Tokenizer) error {
 			// this binding will be one of the paths in the multiple, such as {binding,binding}
 			binding := &PartBinding{izu.NewDefaultPartList("")}
 			multiple.Append(binding)
-		Loop:
 			for subtokenizer.Next() {
 				token := subtokenizer.Current()
 
@@ -139,8 +138,6 @@ func parseCommand(parent izu.Part, tokenizer *Tokenizer) error {
 				case TokenMultiDivide:
 					binding = &PartBinding{izu.NewDefaultPartList("")}
 					multiple.Append(binding)
-				case TokenMultiClose, TokenEOF:
-					break Loop
 				default:
 					binding.Append(&PartString{
 						value: token.String(),

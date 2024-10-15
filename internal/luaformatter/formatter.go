@@ -178,30 +178,15 @@ func (formatter *Formatter) format(root izu.Part, opts ...Option) (output []stri
 		}
 
 		ninputs := make([][]string, len(inputs)*len(bindings))
-		// what a thing huh
-		// what a thing
-		// what thing huh
-		// what thing
-		//
-		// !, ?
-		//
-		// what a thing huh!
-		// what a thing!
-		// what thing huh!
-		// what thing!
-
-		// what a thing huh?
-		// what a thing?
-		// what thing huh?
-		// what thing?
-		for i, binding := range bindings {
-			for j, input := range inputs {
-				ninputs[i*len(inputs)+j] = append(input, binding)
+		for x, binding := range bindings {
+			for y, input := range inputs {
+				entry := append([]string{}, input...)
+				entry = append(entry, binding)
+				ninputs[(x*len(inputs))+y] = entry
 			}
 		}
-		inputs = ninputs
 
-		fmt.Println(kind.String(), bindings, inputs)
+		inputs = ninputs
 
 		return nil
 	})
