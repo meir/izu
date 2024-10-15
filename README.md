@@ -34,6 +34,7 @@ izu --config ./configfile --formatter sway
 
 ## Examples
 For configuration examples look in `./example/`
+
 For formatter examples look in `./pkg/izu/formatters/`
 
 ## License
