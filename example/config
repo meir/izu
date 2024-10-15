@@ -22,7 +22,7 @@ super + p | hyprland[l]
 # different commands per formatter
 # unless the formatter lua file validates commands, this program will not
 # so system specific errors will always be caused by your hotkey daemon
-super + {h,j,k,l}
+super + {h,j,k,l,left,down,up,right}
   sway | swaymsg focus output {left,down,up,right}
   sxhkd | bspc node -f {west,south,north,east}
   hyprland | hyprland -f {left,down,up,right}
