@@ -41,6 +41,7 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			// TODO: rework this
 			if c.String("formatter") == "" {
 				return cli.Exit("formatter is required", 1)
 			}
@@ -68,27 +69,6 @@ func main() {
 			for _, line := range lines {
 				fmt.Println(line)
 			}
-
-			// formatter, err := izu.NewLuaFormatter(c.String("formatter"))
-			// if err != nil {
-			// 	return cli.Exit(err.Error(), 1)
-			// }
-			//
-			// if c.String("config") != "" {
-			// 	content, err := formatter.ParseFile(c.String("config"))
-			// 	if err != nil {
-			// 		return cli.Exit(err.Error(), 1)
-			// 	}
-			// 	fmt.Println(string(content))
-			// }
-			//
-			// if c.String("string") != "" {
-			// 	content, err := formatter.ParseString([]byte(c.String("string")))
-			// 	if err != nil {
-			// 		return cli.Exit(err.Error(), 1)
-			// 	}
-			// 	fmt.Println(string(content))
-			// }
 
 			return nil
 		},
