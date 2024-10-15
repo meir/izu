@@ -1,7 +1,10 @@
 # izu
 izu is a unified hotkey config that's made to parse its own config and generate it into any other hotkey config available.
+
 This can thus be used to manage multiple hotkey daemons on different hosts.
+
 The primary reason for this is switching display protocols or window managers on Linux (using NixOS managed config files).
+
 It's inspired by [sxhkd](https://github.com/baskerville/sxhkd) and shares part of the config syntax.
 
 ## Usage
