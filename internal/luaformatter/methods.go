@@ -3,7 +3,6 @@ package luaformatter
 import (
 	"strings"
 
-	"github.com/meir/izu/pkg/izu"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -33,37 +32,4 @@ func hasKey(state *lua.LState) int {
 	})
 	state.Push(lua.LBool(result))
 	return 1
-}
-
-// addKey will add a key to the validation map
-func registerKeycode(state *lua.LState) int {
-	keyOrValue := state.Get(1)
-	value := state.Get(2)
-
-	switch keyOrValue.Type() {
-	case lua.LTString:
-		key := keyOrValue.String()
-		value := value.String()
-
-		// if there has been no value given, we use the key as the value
-		if value == "" {
-			value = key
-			key = strings.ToLower(key)
-		}
-
-		izu.AddValidationKey(key, value)
-	case lua.LTTable:
-		keyOrValue.(*lua.LTable).ForEach(func(k, v lua.LValue) {
-			key := k.String()
-			value := v.String()
-
-			// if the key is a number, we use the value as the key
-			if strings.Trim(key, "0123456789") == "" {
-				key = strings.ToLower(value)
-			}
-
-			izu.AddValidationKey(key, value)
-		})
-	}
-	return 0
 }

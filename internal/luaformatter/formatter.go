@@ -22,7 +22,6 @@ func NewFormatter(system string) (*Formatter, error) {
 	table.RawSetString("lowercase", state.NewFunction(lowercase))
 	table.RawSetString("uppercase", state.NewFunction(uppercase))
 	table.RawSetString("hasKey", state.NewFunction(hasKey))
-	table.RawSetString("registerKeycode", state.NewFunction(registerKeycode))
 
 	state.SetGlobal("izu", table)
 
