@@ -34,6 +34,10 @@ Example:
 ```
 izu --config ./configfile --formatter sway
 ```
+## Supported formatters
+ - sxhkd
+ - hyprland
+ - sway
 
 ## Examples
 For configuration examples look in `./example/`
