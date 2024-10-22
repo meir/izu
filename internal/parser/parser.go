@@ -325,7 +325,9 @@ func stateCommand(tokenizer *Tokenizer, hotkeys *[]*izu.Hotkey, state *ParserSta
 	_, token = tokenizer.UntilNot(TokenEmpty)
 	if token.Kind() == TokenNewLine {
 		*state = StateRoot
+		return nil
 	}
+	tokenizer.Previous()
 	return nil
 }
 

@@ -1,6 +1,18 @@
 local formatter = {}
 local izu = izu
 
+local bindflags = {
+  "l",
+  "r",
+  "e",
+  "n",
+  "m",
+  "t",
+  "i",
+  "s",
+  "d",
+  "p",
+}
 
 local modifiers = {
   "super",
@@ -15,61 +27,41 @@ local modifiers = {
   "apostrophe",
 }
 
-izu.registerKeycode({
-  "SUPER",
-  "SHIFT",
-  "ALT",
-})
-
-function formatter.binding(parts)
-  local bind = parts[1]
-  local command = parts[2]
-  return "bind = " .. bind .. ", exec, " .. command
-end
-
-function formatter.command(parts)
-  return table.concat(parts, "")
-end
-
--- Super + { a, b } + XF68Media{Play,Pause}
--- ________________________________________
-function formatter.base (parts)
-  local modifier_list = {}
-  local key_list = {}
-
-  for _, part in ipairs(parts) do
-    if izu.hasKey(modifiers, izu.lowercase(part)) then
-      table.insert(modifier_list, part)
-    else
-      table.insert(key_list, part)
+local function flag(f)
+  for _, v in pairs(bindflags) do
+    if v == f then
+      return v
     end
   end
-
-  return table.concat(modifier_list, "_") .. ", " .. table.concat(key_list, "&")
+  return ""
 end
 
--- Super + { a, b } + XF68Media{Play,Pause}
---         ^______^
-function formatter.multiple (parts)
-  return parts
+function formatter.hotkey (args)
+  local flags = args.flags
+  local bindflag = ""
+  for _, v in pairs(flags) do
+    bindflag = bindflag .. flag(v)
+  end
+  return "bind" .. bindflag .. " = " .. table.concat(args.value, ", ")
 end
 
--- Super + { a, b } + XF68Media{Play,Pause}
--- _____     _  _     _____________________
-function formatter.single (parts)
-  return table.concat(parts, "")
+function formatter.binding (args)
+  if args.state == 1 then
+    return table.concat(args.value, ", ")
+  end
+  return table.concat(args.value, "")
 end
 
--- Super + { a, b } + XF68Media{Play,Pause}
---                             ^__________^
-function formatter.single_part (parts)
-  return parts
+function formatter.multiple (args)
+  return args.value
 end
 
--- Super + { a, b } + XF68Media{Play,Pause}
--- ^^^^^     ^  ^     ^^^^^^^^^ ^^^^ ^^^^^
-function formatter.string (part, section)
-  return part
+function formatter.single (args)
+  return table.concat(args.value, "")
+end
+
+function formatter.string (args)
+  return args.value
 end
 
 return formatter
