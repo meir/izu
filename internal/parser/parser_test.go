@@ -153,6 +153,94 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
+		{
+			input: `super + XF86Audio{Play,Pause} | test[right]; abc | playerctl {play,pause}
+      def | echo "{play,pause}"
+      echo "not implemented"`,
+			hotkeys: []izu.Hotkey{
+				{
+					Binding: &PartBinding{
+						izu.NewDefaultPartList(
+							" + ",
+							&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"super"})},
+							&PartSingle{izu.NewDefaultPartList(
+								" + ",
+								&PartString{"XF86Audio"},
+								&PartMultiple{
+									izu.NewDefaultPartListWithNfixes(
+										"{",
+										",",
+										"}",
+										&PartBinding{
+											izu.NewDefaultPartList(
+												" + ",
+												&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"Play"})},
+											),
+										},
+										&PartBinding{
+											izu.NewDefaultPartList(
+												" + ",
+												&PartSingle{izu.NewDefaultPartList(" + ", &PartString{"Pause"})},
+											),
+										},
+									),
+								},
+							)},
+						),
+					},
+					Command: map[string]izu.Part{
+						"abc": &PartBinding{
+							izu.NewDefaultPartList(
+								"",
+								&PartSingle{
+									izu.NewDefaultPartList("", &PartString{"playerctl "},
+										&PartMultiple{
+											izu.NewDefaultPartListWithNfixes(
+												"{",
+												",",
+												"}",
+												&PartString{"play"},
+												&PartString{"pause"},
+											),
+										},
+									),
+								},
+							),
+						},
+						"def": &PartBinding{
+							izu.NewDefaultPartList(
+								"",
+								&PartSingle{
+									izu.NewDefaultPartList("", &PartString{"echo \""},
+										&PartMultiple{
+											izu.NewDefaultPartListWithNfixes(
+												"{",
+												",",
+												"}",
+												&PartString{"play"},
+												&PartString{"pause"},
+											),
+										},
+										&PartString{"\""},
+									),
+								},
+							),
+						},
+						"default": &PartBinding{
+							izu.NewDefaultPartList(
+								"",
+								&PartSingle{
+									izu.NewDefaultPartList("", &PartString{"echo \"not implemented\""}),
+								},
+							),
+						},
+					},
+					Flags: map[string][]string{
+						"test": {"right"},
+					},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {
