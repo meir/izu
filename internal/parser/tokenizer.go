@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"log/slog"
 	"slices"
 )
 
@@ -90,6 +91,7 @@ func NewTokenizerFromTokens(tokens []Token) *Tokenizer {
 
 // tokenize is a helper function that reads through the data and turns everything into a Token
 func tokenize(data []byte) *Tokenizer {
+	slog.Debug("Tokenizing data", "data", string(data))
 	tokens := []Token{}
 	// keep track of the line and column
 	line := 1
@@ -164,6 +166,8 @@ func tokenize(data []byte) *Tokenizer {
 		}
 	}
 
+	slog.Debug("Tokenized data", "tokens", len(tokens))
+
 	return &Tokenizer{
 		tokens: tokens,
 		index:  -1,
@@ -179,7 +183,9 @@ func (t *Tokenizer) Next() bool {
 // Current returns the current token and otherwise EOF
 func (t *Tokenizer) Current() Token {
 	if t.index < 0 || t.index >= len(t.tokens) {
-		return Token{}
+		return Token{
+			kind: TokenEOF,
+		}
 	}
 	return t.tokens[t.index]
 }
@@ -201,7 +207,9 @@ func (t *Tokenizer) Peek(ignore ...TokenKind) Token {
 			return token
 		}
 	}
-	return Token{}
+	return Token{
+		kind: TokenEOF,
+	}
 }
 
 // SkipTo moves to the next token that matches the kind + line + column + value

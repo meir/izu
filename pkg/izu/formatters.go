@@ -17,6 +17,15 @@ type Formatter interface {
 //go:embed formatters/*
 var formatters embed.FS
 
+// GetVersion will return the version stated in the VERSION file
+func GetVersion() string {
+	version, err := formatters.ReadFile("formatters/VERSION")
+	if err != nil {
+		panic(err)
+	}
+	return strings.TrimSpace(string(version))
+}
+
 func GetFormatterFile(language, system string) ([]byte, error) {
 	content, err := formatters.ReadFile(fmt.Sprintf("formatters/%s/%s.lua", language, system))
 	if err != nil {

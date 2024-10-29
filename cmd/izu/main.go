@@ -2,10 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"math"
 	"os"
 
 	"github.com/meir/izu/internal/luaformatter"
 	"github.com/meir/izu/internal/parser"
+	"github.com/meir/izu/pkg/izu"
+	"github.com/phsym/console-slog"
 	"github.com/urfave/cli/v2"
 )
 
@@ -34,6 +38,11 @@ func main() {
 				Aliases: []string{"V"},
 				Usage:   "Print verbose output",
 			},
+			&cli.BoolFlag{
+				Name:    "silent",
+				Aliases: []string{"S"},
+				Usage:   "Silent output, does not output any logs or errors unless when panicking",
+			},
 			&cli.StringFlag{
 				Name:    "string",
 				Aliases: []string{"s"},
@@ -41,29 +50,47 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			// TODO: rework this
-			if c.String("formatter") == "" {
-				return cli.Exit("formatter is required", 1)
+			level := slog.LevelInfo
+			if c.Bool("verbose") {
+				level = slog.LevelDebug
+			} else if c.Bool("silent") {
+				level = math.MaxInt32 // Never log, except for the output using fmt
+			}
+			slog.SetDefault(slog.New(console.NewHandler(os.Stderr, &console.HandlerOptions{
+				Level: level,
+			})))
+
+			if c.Bool("version") {
+				slog.Info("Izu Version " + izu.GetVersion())
+				return nil
 			}
 
-			content, err := os.ReadFile(c.String("config"))
-			if err != nil {
-				return cli.Exit(err.Error(), 1)
+			input := []byte(c.String("string"))
+			if c.String("config") != "" {
+				content, err := os.ReadFile(c.String("config"))
+				if err != nil {
+					slog.Error("Failed to read config file: " + err.Error())
+					return cli.Exit("", 1)
+				}
+				input = content
 			}
 
-			hotkeys, err := parser.Parse(content)
+			hotkeys, err := parser.Parse([]byte(input))
 			if err != nil {
-				return cli.Exit(err.Error(), 1)
+				slog.Error("Failed to parse hotkeys: " + err.Error())
+				return cli.Exit("", 1)
 			}
 
 			formatter, err := luaformatter.NewFormatter(c.String("formatter"))
 			if err != nil {
-				return cli.Exit(err.Error(), 1)
+				slog.Error("Failed to create formatter: " + err.Error())
+				return cli.Exit("", 1)
 			}
 
 			lines, err := formatter.Format(hotkeys)
 			if err != nil {
-				return cli.Exit(err.Error(), 1)
+				slog.Error("Failed to format hotkeys: " + err.Error())
+				return cli.Exit("", 1)
 			}
 
 			for _, line := range lines {

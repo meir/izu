@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/meir/izu/pkg/izu"
 )
@@ -346,6 +347,8 @@ func Parse(data []byte) ([]*izu.Hotkey, error) {
 		StateCommand: stateCommand,
 	}
 
+	slog.Debug("Parsing tokens...")
+
 	// loop through the tokenizer
 	for tokenizer.Next() {
 		if stateFunc, ok := stateMap[state]; ok {
@@ -357,6 +360,8 @@ func Parse(data []byte) ([]*izu.Hotkey, error) {
 			return nil, fmt.Errorf("unknown state %v", state)
 		}
 	}
+
+	slog.Debug("Parsing complete", "hotkey count", len(hotkeys))
 
 	return hotkeys, nil
 }

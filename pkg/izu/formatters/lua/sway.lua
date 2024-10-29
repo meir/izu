@@ -2,7 +2,7 @@ local formatter = {}
 local izu = izu
 
 function formatter.hotkey (args)
-  return "bindsym " .. table.concat(args.value, ", exec, ") .. "\n\n"
+  return "bindsym " .. table.concat(args.value, ", exec, ")
 end
 
 function formatter.binding (args)

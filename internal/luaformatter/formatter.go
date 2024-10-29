@@ -2,6 +2,7 @@ package luaformatter
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/meir/izu/pkg/izu"
 	lua "github.com/yuin/gopher-lua"
@@ -17,6 +18,7 @@ type Formatter struct {
 // NewFormatter creates a new lua formatter for the given system
 func NewFormatter(system string) (*Formatter, error) {
 	// initialize helper methods
+	slog.Debug("Initializing lua formatter", "system", system)
 	state := lua.NewState()
 	table := state.NewTable()
 	table.RawSetString("lowercase", state.NewFunction(lowercase))
@@ -25,17 +27,24 @@ func NewFormatter(system string) (*Formatter, error) {
 
 	state.SetGlobal("izu", table)
 
+	if system == "" {
+		return nil, fmt.Errorf("formatter/system cannot be empty")
+	}
+
 	// load in lua formatter file
+	slog.Debug("Loading lua formatter file", "system", system)
 	content, err := izu.GetFormatterFile("lua", system)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to load lua formatter file for %s: %w", system, err)
 	}
 
 	// run the lua file in order to retrieve the AST methods
+	slog.Debug("Running lua formatter file", "system", system)
 	if err := state.DoString(string(content)); err != nil {
 		return nil, err
 	}
 
+	slog.Debug("Checking for the module returned by the lua formatter file")
 	module := state.Get(-1)
 
 	// check if the response is an object
@@ -54,6 +63,7 @@ func NewFormatter(system string) (*Formatter, error) {
 		// if not, return an error
 		for _, method := range asts {
 			if function := module.RawGetString(method); function.Type() == lua.LTFunction {
+				slog.Debug("Found method in lua formatter module", "method", method)
 				methods[method] = function
 			} else {
 				return nil, fmt.Errorf("expected a function '%s' to be returned within the lua formatter module", method)
@@ -127,8 +137,10 @@ func (formatter *Formatter) Call(method izu.AST, options ...Option) ([]string, e
 
 // Format will take a list of hotkeys and format them into strings that can be used in the config file of the hotkey system
 func (formatter *Formatter) Format(hotkeys []*izu.Hotkey) ([]string, error) {
+	slog.Debug("Formatting hotkeys", "system", formatter.system)
 	output := []string{}
 	for _, hotkey := range hotkeys {
+		slog.Debug("Formatting hotkey", "hotkey", hotkey.String())
 		flags := []string{}
 		// check if there are any flags assigned for this system
 		if sflags, ok := hotkey.Flags[formatter.system]; ok {
@@ -176,8 +188,8 @@ func (formatter *Formatter) Format(hotkeys []*izu.Hotkey) ([]string, error) {
 
 			// and add it to the output
 			output = append(output, response...)
+			slog.Debug("Formatted hotkey", "binding", binding, "command", command)
 		}
-
 	}
 	return output, nil
 }
