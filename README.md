@@ -9,8 +9,6 @@ It's inspired by [sxhkd](https://github.com/baskerville/sxhkd) and shares part o
 
 ## Usage
 
-> !!! This will be reworked once the CLI has been reworked !!!
-
 ```
 NAME:
    izu - A unified hotkey config based on sxhkd.
@@ -26,6 +24,7 @@ GLOBAL OPTIONS:
    --formatter value, -f value  Path to the formatter lua file
    --version, -v                Print the version (default: false)
    --verbose, -V                Print verbose output (default: false)
+   --silent, -S                 Silent output, does not output any logs or errors unless when panicking (default: false)
    --string value, -s value     String to parse
    --help, -h                   show help
 ```
@@ -35,9 +34,9 @@ Example:
 izu --config ./configfile --formatter sway
 ```
 ## Supported formatters
- - sxhkd
- - hyprland
- - sway
+ - sxhkd (done)
+ - hyprland (needs improvement)
+ - sway (needs improvement)
 
 ## Examples
 For configuration examples look in `./example/`
