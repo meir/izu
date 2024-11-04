@@ -233,6 +233,9 @@ func (formatter *Formatter) format(root izu.Part, opts ...Option) (output []stri
 		}
 
 		inputs = ninputs
+		if kind == izu.ASTSingle {
+			inputs = izu.CapitalizeKey(ninputs)
+		}
 
 		return nil
 	})
