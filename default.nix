@@ -19,7 +19,7 @@ buildGoApplication rec {
   src = ./.;
   file = fetchurl {
     url = "https://raw.githubusercontent.com/xkbcommon/libxkbcommon/master/include/xkbcommon/xkbcommon-keysyms.h";
-    hash = "sha256-uPDT22f98wWHAKcBP7QEsrDUP4mGKizzvLsEeWAZEjE=";
+    hash = "sha256-U5ibymrhoq+glsoB1gDIdgpMaoBp8ySccah7bUfojYc=";
   };
   preBuild = ''
     FILE="${file}" go generate ./...
