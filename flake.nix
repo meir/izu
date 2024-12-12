@@ -19,16 +19,12 @@
     (flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs { overlays = [ gomod2nix.overlays.default ]; };
         gomod2nixPkgs = gomod2nix.legacyPackages.${system};
-
-        # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.
-        # This has no effect on other platforms.
-        callPackage = pkgs.darwin.apple_sdk_11_0.callPackage or pkgs.callPackage;
       in
       {
-        packages.default = callPackage ./. { inherit (gomod2nixPkgs) buildGoApplication; };
-        devShells.default = callPackage ./shell.nix {
+        packages.default = pkgs.callPackage ./. { inherit gomod2nix; };
+        devShells.default = pkgs.callPackage ./shell.nix {
           inherit (gomod2nixPkgs) mkGoEnv gomod2nix;
           inherit pre-commit-hooks;
         };

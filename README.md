@@ -43,5 +43,7 @@ For configuration examples look in `./example/`
 
 For formatter examples look in `./pkg/izu/formatters/`
 
+### NixOS Example
+
 ## License
 MIT
