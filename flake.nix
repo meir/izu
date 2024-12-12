@@ -14,20 +14,15 @@
       nixpkgs,
       flake-utils,
       gomod2nix,
-      pre-commit-hooks,
     }:
     (flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = import nixpkgs { overlays = [ gomod2nix.overlays.default ]; };
-        gomod2nixPkgs = gomod2nix.legacyPackages.${system};
       in
       {
         packages.default = pkgs.callPackage ./. { inherit gomod2nix; };
-        devShells.default = pkgs.callPackage ./shell.nix {
-          inherit (gomod2nixPkgs) mkGoEnv gomod2nix;
-          inherit pre-commit-hooks;
-        };
+        devShells.default = pkgs.callPackage ./shell.nix { inherit pkgs; };
       }
     ));
 }
