@@ -14,6 +14,7 @@
       nixpkgs,
       flake-utils,
       gomod2nix,
+      pre-commit-hooks,
     }:
     (flake-utils.lib.eachDefaultSystem (
       system:
@@ -22,7 +23,7 @@
       in
       {
         packages.default = pkgs.callPackage ./. { inherit gomod2nix; };
-        devShells.default = pkgs.callPackage ./shell.nix { inherit pkgs; };
+        devShells.default = pkgs.callPackage ./shell.nix { inherit pre-commit-hooks pkgs; };
       }
     ));
 }
