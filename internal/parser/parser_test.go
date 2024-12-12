@@ -3,7 +3,7 @@ package parser
 import (
 	"testing"
 
-	"github.com/andreyvit/diff"
+	"github.com/go-test/deep"
 	"github.com/meir/izu/pkg/izu"
 )
 
@@ -256,12 +256,14 @@ func TestParser(t *testing.T) {
 			continue
 		}
 
-		for i, hotkey := range hotkeys {
-			expected := c.hotkeys[i].String()
-			actual := hotkey.String()
-			if actual != expected {
-				t.Errorf("#%d: '%s' returned hotkey %d: got '%s', want '%s', diff: '%s'", case_index, c.input, i, actual, expected, diff.LineDiff(expected, actual))
+		for i, actual := range hotkeys {
+			expected := c.hotkeys[i]
+
+			// check if deepEqual
+			if diff := deep.Equal(*actual, expected); diff != nil {
+				t.Errorf("#%d: %v", case_index, diff)
 			}
+
 		}
 	}
 }

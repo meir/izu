@@ -19,10 +19,17 @@
     (flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { overlays = [ gomod2nix.overlays.default ]; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ gomod2nix.overlays.default ];
+        };
       in
       {
-        packages.default = pkgs.callPackage ./. { inherit gomod2nix; };
+        packages.default = pkgs.callPackage ./. {
+          inherit pkgs;
+          hotkeys = [ ];
+          formatter = "sxhkd";
+        };
         devShells.default = pkgs.callPackage ./shell.nix { inherit pre-commit-hooks pkgs; };
       }
     ));

@@ -1,30 +1,18 @@
 schema = 3
 
 [mod]
-  [mod."github.com/andreyvit/diff"]
-    version = "v0.0.0-20170406064948-c7f18ee00883"
-    hash = "sha256-2XoKB20lN+KGnAb/eVv1NcU/CcSdUPcvVNiXF/uUmOg="
   [mod."github.com/cpuguy83/go-md2man/v2"]
     version = "v2.0.4"
     hash = "sha256-pQ+H8Psh92KWTang8hK0cHFLomH+4X0rMMilIJUQ4Qc="
-  [mod."github.com/fatih/color"]
-    version = "v1.18.0"
-    hash = "sha256-pP5y72FSbi4j/BjyVq/XbAOFjzNjMxZt2R/lFFxGWvY="
-  [mod."github.com/mattn/go-colorable"]
-    version = "v0.1.13"
-    hash = "sha256-qb3Qbo0CELGRIzvw7NVM1g/aayaz4Tguppk9MD2/OI8="
-  [mod."github.com/mattn/go-isatty"]
-    version = "v0.0.20"
-    hash = "sha256-qhw9hWtU5wnyFyuMbKx+7RB8ckQaFQ8D+8GKPkN3HHQ="
+  [mod."github.com/go-test/deep"]
+    version = "v1.1.1"
+    hash = "sha256-WvPrTvUPmbQb4R6DrvSB9O3zm0IOk+n14YpnSl2deR8="
   [mod."github.com/phsym/console-slog"]
     version = "v0.3.1"
     hash = "sha256-84jUWj3OOah0TTBSwyt3K6lMAElWlCnYV+skQgo2xFc="
   [mod."github.com/russross/blackfriday/v2"]
     version = "v2.1.0"
     hash = "sha256-R+84l1si8az5yDqd5CYcFrTyNZ1eSYlpXKq6nFt4OTQ="
-  [mod."github.com/sergi/go-diff"]
-    version = "v1.3.1"
-    hash = "sha256-XLA/BLIPuUU76yikXqIeRSXr7T7A3Uz6I27+mDxGj7w="
   [mod."github.com/urfave/cli/v2"]
     version = "v2.27.4"
     hash = "sha256-8gkLizRt7U9BfTok/hTysMt78HBP8syiEJ0eYhFrAvo="
@@ -34,6 +22,3 @@ schema = 3
   [mod."github.com/yuin/gopher-lua"]
     version = "v1.1.1"
     hash = "sha256-f7clAQeOHKQ3pL9ibNgXvc9QnIEvlMzm5SlWEDkj5tk="
-  [mod."golang.org/x/sys"]
-    version = "v0.25.0"
-    hash = "sha256-PXZ9EQZ7SFpcL7d3E1+KGTxziYlHEIZPfoXEbnaVD3I="
