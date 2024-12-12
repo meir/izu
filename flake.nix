@@ -26,19 +26,14 @@
       in
       rec {
         packages.default = pkgs.callPackage ./izu.nix { inherit pkgs; };
-        packages.izuGenerate = pkgs.callPackage ./. {
+        packages.izuGenerate = pkgs.callPackage ./izu-generate.nix {
           inherit pkgs;
           izu = packages.default;
           formatter = "sxhkd";
           hotkeys = [ ];
         };
 
-        overlays.default = (
-          final: prev: {
-            izu = packages.default;
-            izuGenerate = formatter: hotkeys: packages.izuGenerate.override { inherit formatter hotkeys; };
-          }
-        );
+        overlays.default = import ./overlay.nix { inherit packages; };
 
         devShells.default = pkgs.callPackage ./shell.nix { inherit pre-commit-hooks pkgs; };
       }

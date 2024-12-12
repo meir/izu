@@ -1,7 +1,7 @@
 { pkgs }:
 pkgs.buildGoApplication rec {
   pname = "izu";
-  version = "0.2.1";
+  version = "0.2.2";
 
   pwd = ./.;
   src = ./.;
