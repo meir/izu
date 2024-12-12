@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"github.com/andreyvit/diff"
 	"github.com/meir/izu/pkg/izu"
 )
 
@@ -256,8 +257,10 @@ func TestParser(t *testing.T) {
 		}
 
 		for i, hotkey := range hotkeys {
-			if hotkey.String() != c.hotkeys[i].String() {
-				t.Errorf("'%s' returned hotkey %d: got '%s', want '%s'", c.input, i, hotkey.String(), c.hotkeys[i].String())
+			expected := c.hotkeys[i].String()
+			actual := hotkey.String()
+			if actual != expected {
+				t.Errorf("'%s' returned hotkey %d: got '%s', want '%s', diff: '%s'", c.input, i, actual, expected, diff.LineDiff(expected, actual))
 			}
 		}
 	}

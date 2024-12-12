@@ -1,6 +1,9 @@
 schema = 3
 
 [mod]
+  [mod."github.com/andreyvit/diff"]
+    version = "v0.0.0-20170406064948-c7f18ee00883"
+    hash = "sha256-2XoKB20lN+KGnAb/eVv1NcU/CcSdUPcvVNiXF/uUmOg="
   [mod."github.com/cpuguy83/go-md2man/v2"]
     version = "v2.0.4"
     hash = "sha256-pQ+H8Psh92KWTang8hK0cHFLomH+4X0rMMilIJUQ4Qc="
@@ -19,6 +22,9 @@ schema = 3
   [mod."github.com/russross/blackfriday/v2"]
     version = "v2.1.0"
     hash = "sha256-R+84l1si8az5yDqd5CYcFrTyNZ1eSYlpXKq6nFt4OTQ="
+  [mod."github.com/sergi/go-diff"]
+    version = "v1.3.1"
+    hash = "sha256-XLA/BLIPuUU76yikXqIeRSXr7T7A3Uz6I27+mDxGj7w="
   [mod."github.com/urfave/cli/v2"]
     version = "v2.27.4"
     hash = "sha256-8gkLizRt7U9BfTok/hTysMt78HBP8syiEJ0eYhFrAvo="
