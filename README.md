@@ -56,9 +56,9 @@ In your flake.nix:
     output = inputs: {
         nixosConfigurations = {
             host = inputs.nixpkgs.lib.nixosSystem {
-                specialArgs = {
-                    inherit izu;
-                };
+                overlays = [
+                    izu.overlays.default
+                ];
 
                 # ...
             };
@@ -67,29 +67,22 @@ In your flake.nix:
 }
 ```
 
-In your overlays add:
+After that you can either install the izu package as so:
 ```nix
-overlays = [
-    (final: prev: {
-        izu = pkgs.callPackage izu { };
-    })
+environment.systemPackages = with pkgs; [ izu ];
+```
+
+Or generate a hotkey config as such:
+```nix
+home.file.".config/sxhkd/sxhkdrc".source = pkgs.izuGenerate "sxhkd" [
+    ''
+        super + {_,shift +} space
+            rofi -show {drun,run} &
+    ''
 ];
 ```
 
-And finally using Home-Manager or another file manager you can use the following to place hotkeys in your daemon:
-```nix
-home.file.".config/sxhkd/sxhkdrc".source = "${
-    (pkgs.izu.override {
-        hotkeys = [
-            ''
-                super + {_,shift +} space
-                    rofi -show {drun,run} &
-            ''
-        ];
-        formatter = "sxhkd";
-    })
-}";
-```
+To insert it within an existing file, you'll have to use `readFile` in order to gain the generated content.
 
 ## License
 MIT
