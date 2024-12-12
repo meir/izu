@@ -244,15 +244,15 @@ func TestParser(t *testing.T) {
 		},
 	}
 
-	for _, c := range cases {
+	for case_index, c := range cases {
 		hotkeys, err := Parse([]byte(c.input))
 		if err != nil {
-			t.Errorf("'%s' returned error: %v", c.input, err)
+			t.Errorf("#%d: '%s' returned error: %v", case_index, c.input, err)
 			continue
 		}
 
 		if len(hotkeys) != len(c.hotkeys) {
-			t.Errorf("'%s' returned %d hotkeys, want %d", c.input, len(hotkeys), len(c.hotkeys))
+			t.Errorf("#%d: '%s' returned %d hotkeys, want %d", case_index, c.input, len(hotkeys), len(c.hotkeys))
 			continue
 		}
 
@@ -260,7 +260,7 @@ func TestParser(t *testing.T) {
 			expected := c.hotkeys[i].String()
 			actual := hotkey.String()
 			if actual != expected {
-				t.Errorf("'%s' returned hotkey %d: got '%s', want '%s', diff: '%s'", c.input, i, actual, expected, diff.LineDiff(expected, actual))
+				t.Errorf("#%d: '%s' returned hotkey %d: got '%s', want '%s', diff: '%s'", case_index, c.input, i, actual, expected, diff.LineDiff(expected, actual))
 			}
 		}
 	}
