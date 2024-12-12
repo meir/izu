@@ -45,5 +45,51 @@ For formatter examples look in `./pkg/izu/formatters/`
 
 ### NixOS Example
 
+In your flake.nix:
+```nix
+{
+    inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+        izu.url = "github:meir/izu";
+    };
+
+    output = inputs: {
+        nixosConfigurations = {
+            host = inputs.nixpkgs.lib.nixosSystem {
+                specialArgs = {
+                    inherit izu;
+                };
+
+                # ...
+            };
+        };
+    };
+}
+```
+
+In your overlays add:
+```nix
+overlays = [
+    (final: prev: {
+        izu = pkgs.callPackage izu { };
+    })
+];
+```
+
+And finally using Home-Manager or another file manager you can use the following to place hotkeys in your daemon:
+```nix
+home.file.".config/sxhkd/sxhkdrc".source = "${
+    (pkgs.izu.override {
+        hotkeys = [
+            ''
+                super + {_,shift +} space
+                    rofi -show {drun,run} &
+            ''
+        ];
+        formatter = "sxhkd";
+    })
+}";
+```
+
 ## License
 MIT
