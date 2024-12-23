@@ -20,8 +20,8 @@ func uppercase(state *lua.LState) int {
 	return 1
 }
 
-// hasKey will check if a key exists in a table
-func hasKey(state *lua.LState) int {
+// contains will check if a key exists in a table
+func contains(state *lua.LState) int {
 	table := state.CheckTable(1)
 	key := state.CheckString(2)
 	result := false

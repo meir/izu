@@ -23,7 +23,7 @@ func NewFormatter(system string) (*Formatter, error) {
 	table := state.NewTable()
 	table.RawSetString("lowercase", state.NewFunction(lowercase))
 	table.RawSetString("uppercase", state.NewFunction(uppercase))
-	table.RawSetString("hasKey", state.NewFunction(hasKey))
+	table.RawSetString("contains", state.NewFunction(contains))
 
 	state.SetGlobal("izu", table)
 
