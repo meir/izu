@@ -1,4 +1,5 @@
 /gomod2nix-template
+result/
 .pre-commit-config.yaml
 result
 .direnv
