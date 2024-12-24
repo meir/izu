@@ -161,7 +161,8 @@ func (formatter *Formatter) Format(hotkeys []*izu.Hotkey) ([]string, error) {
 		} else if scommand, ok := hotkey.Command["default"]; ok {
 			command = scommand
 		} else {
-			return nil, fmt.Errorf("no command found for hotkey '%s' on system '%s'", hotkey.String(), formatter.system)
+			slog.Warn("No command found for hotkey", "hotkey", hotkey.String(), "system", formatter.system)
+			continue
 		}
 
 		// format the command part of this hotkey
