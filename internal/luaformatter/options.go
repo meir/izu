@@ -63,6 +63,13 @@ func OptionStateBinding() Option {
 	}
 }
 
+func OptionStateMultiBinding() Option {
+	return Option{
+		name:  "state",
+		value: lua.LNumber(3),
+	}
+}
+
 func OptionStateCommand() Option {
 	return Option{
 		name:  "state",

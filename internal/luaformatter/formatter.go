@@ -214,6 +214,12 @@ func (formatter *Formatter) format(root izu.Part, opts ...Option) (output []stri
 
 		// format the subpart recursively
 		opts = append(opts, OptionAST(kind))
+
+		// set state to multibinding to prevent issues discriminating bindings in the hotkey and bindings in the multiple
+		if kind == izu.ASTBinding {
+			opts = append(opts, OptionStateMultiBinding())
+		}
+
 		bindings, err := formatter.format(part, opts...)
 		if err != nil {
 			return err
@@ -221,6 +227,11 @@ func (formatter *Formatter) format(root izu.Part, opts ...Option) (output []stri
 
 		// multiple the inputs by the bindings given from the subpart
 		// this assures we get a full binding/command for every multiple
+		binding_len := len(bindings)
+		if binding_len == 0 {
+			return nil
+		}
+
 		ninputs := make([][]string, len(inputs)*len(bindings))
 		for x, binding := range bindings {
 			for y, input := range inputs {

@@ -16,6 +16,7 @@ A clear and concise description of what you expected to happen.
 **Command and Config**
 <details>
 <summary>Command</summary>
+
 ```
 Add command here
 ```
@@ -23,6 +24,7 @@ Add command here
 
 <details>
 <summary>Config</summary>
+
 ```
 Add config here
 ```

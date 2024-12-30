@@ -43,7 +43,9 @@ local function order_keys(bind)
     if izu.contains(modifiers, v) then
       table.insert(mods, v)
     else
-      table.insert(keys, v)
+      if v ~= "" then
+        table.insert(keys, v)
+      end
     end
   end
 
@@ -116,7 +118,11 @@ function formatter.multiple (args)
 end
 
 function formatter.single (args)
-  return replace_mousekey(table.concat(args.value, ""))
+  local value = table.concat(args.value, "")
+  if value == "_" then
+    return {}
+  end
+  return {replace_mousekey(value)}
 end
 
 function formatter.string (args)
