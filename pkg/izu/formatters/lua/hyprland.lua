@@ -1,6 +1,25 @@
 local formatter = {}
 local izu = izu
 
+local capitalizations = {
+  ["super"] = "Super",
+  ["shift"] = "Shift",
+  ["ctrl"] = "Ctrl",
+}
+
+local function replace_capitalizations(keys)
+  local output = {}
+  for _, key in ipairs(keys) do
+    local replacement = capitalizations[key]
+    if replacement ~= nil then
+      table.insert(output, replacement)
+    else
+      table.insert(output, key)
+    end
+  end
+  return output
+end
+
 -- modifier order for `bind = Super+Shift, exec, echo hellow world
 local modifiers = {
   "Super",
@@ -89,7 +108,7 @@ end
 
 function formatter.binding (args)
   if args.state == 1 then
-    return table.concat(order_keys(args.value), ",")
+    return table.concat(order_keys(replace_capitalizations(args.value)), ", ")
   end
   return table.concat(args.value, "")
 end

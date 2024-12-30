@@ -16,7 +16,8 @@ func CapitalizeKey(binding [][]string) [][]string {
 			if value, ok := keys[strings.ToLower(key)]; ok {
 				line = append(line, value)
 			} else {
-				line = append(line, key)
+				// convert custom keys to lowercase, let the formatter handle it after this
+				line = append(line, strings.ToLower(key))
 			}
 		}
 		output = append(output, line)
