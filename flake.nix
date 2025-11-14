@@ -38,7 +38,7 @@
         default = pkgs.callPackage ./izu.nix { inherit pkgs; };
         izuGenerate = pkgs.callPackage ./izu-generate.nix {
           inherit pkgs;
-          izu = packages.${final.system}.default;
+          izu = packages.${system}.default;
           formatter = "sxhkd";
           hotkeys = [ ];
         };
