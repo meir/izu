@@ -27,3 +27,6 @@ super + {h,j,k,l,left,down,up,right}
   sxhkd | bspc node -f {west,south,north,east}
   hyprland | hyprland -f {left,down,up,right}
   echo "fallback command; not implemented"
+
+XF86Audio{Play,Pause}
+  playerctl --{play,pause}
