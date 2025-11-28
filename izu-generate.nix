@@ -17,7 +17,7 @@ pkgs.stdenv.mkDerivation {
   phases = "installPhase";
 
   installPhase = ''
-    izu --silent --config ${cfg} --formatter ${formatter} > "$out"
+    izu --config ${cfg} --formatter ${formatter} > "$out"
   '';
 
   meta = {
