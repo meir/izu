@@ -31,5 +31,11 @@ super + {h,j,k,l,left,down,up,right}
 XF86Audio{Play,Pause}
   playerctl --{play,pause}
 
-super + {_,shift} S
+super + {_,shift +} S
   save {_,-f}
+
+super + {_, shift + }{h,j,k,l}
+  {move-column-left,move-window-down,move-window-up,move-column-right};
+
+super + {_, shift +} Space
+  niri | spawn "rofi -show {drun,run}";
