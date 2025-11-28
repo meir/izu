@@ -74,7 +74,7 @@ end
 function formatter.single(args)
 	local value = table.concat(args.value, "")
 	if value == "_" then
-		return
+		return {}
 	end
 	return { replace_mousekey(value) }
 end
