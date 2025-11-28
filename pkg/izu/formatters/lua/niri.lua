@@ -14,7 +14,12 @@ local function replace_capitalizations(keys)
 		if replacement ~= nil then
 			table.insert(output, replacement)
 		else
-			table.insert(output, key)
+			-- if length == 1, uppercase it
+			if #key == 1 then
+				table.insert(output, izu.uppercase(key))
+			else
+				table.insert(output, key)
+			end
 		end
 	end
 	return output
@@ -28,25 +33,6 @@ local modifiers = {
 	"Ctrl",
 	"Mod",
 }
-
-local function order_keys(bind)
-	local mods = {}
-	local keys = {}
-	for _, v in ipairs(bind) do
-		if izu.contains(modifiers, v) then
-			table.insert(mods, v)
-		else
-			if v ~= "" then
-				table.insert(keys, v)
-			end
-		end
-	end
-
-	return {
-		table.concat(mods, "+"),
-		table.concat(keys, "+"),
-	}
-end
 
 -- mousekeys for binds such as mouse:273, mouse:274, etc.
 local mouse_keys = {
@@ -76,7 +62,7 @@ end
 
 function formatter.binding(args)
 	if args.state == 1 then
-		return table.concat(order_keys(replace_capitalizations(args.value)), "+")
+		return table.concat(replace_capitalizations(args.value), "+")
 	end
 	return table.concat(args.value, "")
 end
@@ -88,7 +74,7 @@ end
 function formatter.single(args)
 	local value = table.concat(args.value, "")
 	if value == "_" then
-		return {}
+		return
 	end
 	return { replace_mousekey(value) }
 end
