@@ -54,6 +54,16 @@ local function replace_mousekey(key)
 	return key
 end
 
+local function filter_empty_strings(tbl)
+	local output = {}
+	for _, v in ipairs(tbl) do
+		if v ~= "" then
+			table.insert(output, v)
+		end
+	end
+	return output
+end
+
 -- Formatter functions
 
 function formatter.hotkey(args)
@@ -62,7 +72,7 @@ end
 
 function formatter.binding(args)
 	if args.state == 1 then
-		return table.concat(replace_capitalizations(args.value), "+")
+		return table.concat(filter_empty_strings(replace_capitalizations(args.value)), "+")
 	end
 	return table.concat(args.value, "")
 end
