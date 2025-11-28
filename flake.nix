@@ -34,25 +34,10 @@
           );
     in
     rec {
-      packages = forAllSystems (pkgs: {
-        default = pkgs.callPackage ./izu.nix { inherit pkgs; };
-        izuGenerate = pkgs.callPackage ./izu-generate.nix {
-          inherit pkgs;
-          izu = packages.${pkgs.system}.default;
-          formatter = "sxhkd";
-          hotkeys = [ ];
-        };
+      packages = forAllSystems (pkgs: rec {
+        default = pkgs.callPackage ./izu.nix { };
+        izuGenerate = pkgs.callPackage ./izu-generate.nix { izu = default; };
       });
-
-      overlays.default = final: prev: {
-        izu = packages.${final.system}.default;
-        izuGenerate =
-          formatter: hotkeys:
-          packages.${final.system}.izuGenerate.override {
-            inherit formatter hotkeys;
-            izu = packages.${final.system}.default;
-          };
-      };
 
       devShells = forAllSystems (pkgs: {
         default = pkgs.callPackage ./shell.nix { inherit pre-commit-hooks pkgs; };

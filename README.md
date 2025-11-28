@@ -49,37 +49,32 @@ In your flake.nix:
 ```nix
 {
     inputs = {
-        nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+        # ...
         izu.url = "github:meir/izu";
     };
 
-    output = inputs: {
-        nixosConfigurations = {
-            host = inputs.nixpkgs.lib.nixosSystem {
-                overlays = [
-                    izu.overlays.default
-                ];
-
-                # ...
-            };
-        };
-    };
 }
 ```
 
-After that you can either install the izu package as so:
+As a new overlay add the following:
 ```nix
-environment.systemPackages = with pkgs; [ izu ];
+(final: prev: {
+    izu = izu.packages."${final.system}";
+    izuGenerate = izu.packages."${final.system}".izuGenerate;
+})
 ```
 
-Or generate a hotkey config as such:
+Then generate your config my overriding the package with your variables like so:
 ```nix
-home.file.".config/sxhkd/sxhkdrc".source = pkgs.izuGenerate "sxhkd" [
-    ''
-        super + {_,shift +} space
-            rofi -show {drun,run} &
-    ''
-];
+home.file.".config/sxhkd/sxhkdrc".source = pkgs.izuGenerate.override {
+    formatter = "sxhkd";
+    hotkeys = [
+        ''
+            super + {_,shift +} space
+                rofi -show {drun,run} &
+        ''
+    ];
+};
 ```
 
 To insert it within an existing file, you'll have to use `readFile` in order to gain the generated content.
